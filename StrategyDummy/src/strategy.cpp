@@ -6,8 +6,8 @@ API_EXPORT void InitStrategy(SInfo* info)
 {
 	std::cout << "InitStrategy" << std::endl;
 
-	info->SetName("Test de librairie");
-	info->AddMember("Fabien Picarougne");
+	info->SetName("Strategie qui passe tout le temps");
+	info->AddMember("Felix");
 }
 
 API_EXPORT IStrategy* StrategyFactory()

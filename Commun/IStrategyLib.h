@@ -3,12 +3,12 @@
 
 #include "IInfoLib.h"
 
-// Structure définissant les caractéristiques d'une cellule
+// Structure dï¿½finissant les caractï¿½ristiques d'une cellule
 struct SCellInfo
 {
 	unsigned int id;	// Id de la cellule
-	unsigned int owner;	// Id du joueur qui la possède
-	unsigned int nbDices;	// Nombre de dés
+	unsigned int owner;	// Id du joueur qui la possï¿½de
+	unsigned int nbDices;	// Nombre de dï¿½s
 };
 
 struct SGameState
@@ -16,10 +16,10 @@ struct SGameState
 	SCellInfo *cells;	// Tableau d'informations sur le contenu des cellules
 	unsigned int nbCells;
 	unsigned int points[8];	// Points de chaque joueur
-	unsigned int diceStock[8];	// Réserve de dés de chaque joueur
+	unsigned int diceStock[8];	// Rï¿½serve de dï¿½s de chaque joueur
 };
 
-// Structure définissant les caractéristiques d'une cellule
+// Structure dï¿½finissant les caractï¿½ristiques d'une cellule
 struct SCell;
 using pSCell = SCell*;
 struct SCell
@@ -29,14 +29,14 @@ struct SCell
 	unsigned int nbNeighbors;	// Nombre de cellules voisines
 };
 
-// Structure définissant la carte globale du jeu
+// Structure dï¿½finissant la carte globale du jeu
 struct SMap
 {
 	SCell *cells;	// Tableau des cellules
 	unsigned int nbCells;	// Nombre de cellules
 };
 
-// Structure définissant les paramètres d'un coup joué
+// Structure dï¿½finissant les paramï¿½tres d'un coup jouï¿½
 struct STurn
 {
 	unsigned int cellFrom;
@@ -47,20 +47,20 @@ struct IStrategy
 {
 	virtual ~IStrategy() {}
 
-	// Fonction à appeler au début de chaque partie
+	// Fonction ï¿½ appeler au dï¿½but de chaque partie
 	//	* Ne pas oublier pour l'arbitre de dupliquer toute la structure map pour chaque appel !
 	virtual void InitGame(unsigned int id, unsigned int nbPlayer, const SMap* map) = 0;
 
-	// Fonction à appeler à chaque tour sur la stratégie et tant que le retour de fonction est vrai et qu'il n'y a pas d'erreur.
-	//	* En cas d'erreur, rétablir la carte dans l'état initial avant le premier tour du joueur.
-	// valeur de retour : booléen - false : coups terminés, true : structure turn complétée avec un nouveau coup à jouer.
-	// gameTurn : tour de jeu (permet à la stratégie de savoir si elle a échouée au tour précédant)
+	// Fonction ï¿½ appeler ï¿½ chaque tour sur la stratï¿½gie et tant que le retour de fonction est vrai et qu'il n'y a pas d'erreur.
+	//	* En cas d'erreur, rï¿½tablir la carte dans l'ï¿½tat initial avant le premier tour du joueur.
+	// valeur de retour : boolï¿½en - false : coups terminï¿½s, true : structure turn complï¿½tï¿½e avec un nouveau coup ï¿½ jouer.
+	// gameTurn : tour de jeu (permet ï¿½ la stratï¿½gie de savoir si elle a ï¿½chouï¿½e au tour prï¿½cï¿½dant)
 	virtual bool PlayTurn(unsigned int gameTurn, const SGameState* state, STurn* turn) = 0;
 
-	// Fonction à appeler à la fin de chaque partie
+	// Fonction ï¿½ appeler ï¿½ la fin de chaque partie
 	virtual void EndGame(unsigned int idWinner) = 0;
 };
 
-// Types prédéfinis pour simplifier la récupération des fonctions dans la librairie
+// Types prï¿½dï¿½finis pour simplifier la rï¿½cupï¿½ration des fonctions dans la librairie
 using pStrategyFactory = IStrategy * (*)();
 using pStrategyDelete = void (*)(IStrategy* obj);

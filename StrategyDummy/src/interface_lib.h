@@ -6,8 +6,8 @@
 
 extern "C"
 {
-	// Fonction à appeler au chargement de la librairie
-	// La stratégie doit compléter la structure SInfo
+	// Fonction ï¿½ appeler au chargement de la librairie
+	// La stratï¿½gie doit complï¿½ter la structure SInfo
 	API_EXPORT void InitStrategy(SInfo* info);
 
 	API_EXPORT IStrategy* StrategyFactory();
