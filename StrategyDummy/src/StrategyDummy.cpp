@@ -29,7 +29,6 @@ bool StrategyDummy::PlayTurn(unsigned int gameTurn, const SGameState* state, STu
 	// d�rouler votre algorithme de choix
 	std::cout << state->nbCells << std::endl;
 
-	std::cout << "Map.nbCells" << Map.nbCells;
 	for (unsigned int i = 0; i < Map.nbCells; ++i) {
 		Map.cells[i].infos = state->cells[i];//on acutalise les nouvelles infos du tour
 	}
@@ -50,15 +49,36 @@ bool StrategyDummy::PlayTurn(unsigned int gameTurn, const SGameState* state, STu
 	}
 
 	//strategie basique, from du cellsPlayable ayant le plus de des
-	auto& From = cellsPlayable[0];
+	auto From = cellsPlayable[0]->infos.id;
 	for (auto& it : cellsPlayable) {
-		if (it->infos.nbDices > From->infos.nbDices) {//verifie que cette case nous appartient et que elle a plus de des que la precedente
-			From = it;
+		if (it->infos.nbDices > Map.cells[From].infos.nbDices) {//verifie que cette case nous appartient et que elle a plus de des que la precedente
+			From = it->infos.id;
+			std::cout << "id : " << From << it->infos.id << std::endl;
 		}
 	}
 	//on a donc la case jouable avec le plus de des
-	std::cout << "From nb dices" << From->infos.nbDices << std::endl;
-
+	std::cout << "From nb dices" << Map.cells[From].infos.nbDices << std::endl;
+	auto& FromCell = Map.cells[From];
+	std::vector<pSCell> cellsAttackable;
+	for (unsigned i = 0; i < FromCell.nbNeighbors; ++i) {//permet de trouver tous les cases ennemi
+		if (FromCell.neighbors[i]->infos.owner != Id ) {
+			cellsAttackable.push_back(FromCell.neighbors[i]);//on rajoute ladresse des cells qui sont jouables
+			break;
+		}
+	}
+	if (cellsAttackable.empty()) {
+		return false;//si aucune case jouable, on finit le tour
+		std::cout << "end of turn : no attackable cell" << std::endl;
+	}
+	auto To = cellsAttackable[0]->infos.id;
+	for (auto& it : cellsAttackable) {
+		if (it->infos.nbDices > Map.cells[To].infos.nbDices) {//trouve la case ennemie en partant de from avec le moins de des
+			To = it->infos.id;
+		}
+	}
+	turn->cellFrom = From;
+	turn->cellTo = To;
+	return true;
 	//	auto& From = Map.cells[turn->cellFrom];
 	//	unsigned int i = 0;
 	//	while ( i < From.nbNeighbors && From.neighbors[i]->infos.owner == Id ) i++;//trouve la premiere case qui nous appartient pas possibilité qui y ait pas de voisin donc faute
