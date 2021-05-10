@@ -22,10 +22,12 @@
     <ClInclude Include="src\interface_lib.h" />
     <ClInclude Include="src\Strategy.h" />
     <ClInclude Include="src\StrategyDummy.h" />
+    <ClInclude Include="StrategyBasique.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\strategy.cpp" />
     <ClCompile Include="src\StrategyDummy.cpp" />
+    <ClCompile Include="StrategyBasique.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
