@@ -1,4 +1,4 @@
-#include "StrategyBasique.h"
+#include "StrategyBasic.h"
 #include <vector>
 #include <iostream>
 
@@ -42,7 +42,7 @@ bool StrategyBasic::PlayTurn(unsigned int gameTurn, const SGameState* state, STu
 	for (unsigned i = 0; i < FromCell.nbNeighbors; ++i) {//permet de trouver tous les cases ennemi
 		if (FromCell.neighbors[i]->infos.owner != Id ) {
 			cellsAttackable.push_back(FromCell.neighbors[i]);//on rajoute ladresse des cells qui sont jouables
-			break;
+			//break;
 		}
 	}
 	if (cellsAttackable.empty()) {

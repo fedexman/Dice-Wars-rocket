@@ -25,7 +25,7 @@ API_EXPORT void StrategyDelete(IStrategy* obj)
 void Strategy::InitGame(unsigned int id, unsigned int nbPlayer, const SMap* map)
 {
 	if (Current) delete Current;
-	Current = new StrategyBasic(id, nbPlayer, map);
+	Current = new StrategyBasicv2(id, nbPlayer, map);
 }
 
 bool Strategy::PlayTurn(unsigned int gameTurn, const SGameState *state, STurn *turn)

@@ -2,7 +2,8 @@
 
 #include "../../Commun/IStrategyLib.h"
 #include "StrategyDummy.h"
-#include "../StrategyBasique.h"
+#include "../StrategyBasic.h"
+#include "../StrategyBasicv2.h"
 
 class Strategy : public IStrategy
 {
