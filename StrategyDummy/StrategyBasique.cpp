@@ -2,7 +2,7 @@
 #include <vector>
 #include <iostream>
 
-bool StrategyDummy::PlayTurn(unsigned int gameTurn, const SGameState* state, STurn* turn)
+bool StrategyBasic::PlayTurn(unsigned int gameTurn, const SGameState* state, STurn* turn)
 {
 	// d�rouler votre algorithme de choix
 	std::cout << state->nbCells << std::endl;

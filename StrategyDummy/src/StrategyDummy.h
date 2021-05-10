@@ -8,12 +8,12 @@ public:
 	StrategyDummy(unsigned int id, unsigned int nbPlayer, const SMap* map);
 	StrategyDummy(const StrategyDummy &obj) =delete;
 	StrategyDummy(StrategyDummy &&obj) =delete;
-	~StrategyDummy();
+	~StrategyDummy();//faut-il qui soit virtual ?
 	StrategyDummy& operator=(const StrategyDummy &obj) =delete;
 	StrategyDummy& operator=(StrategyDummy &&obj) =delete;
 
 public:
-	bool PlayTurn(unsigned int gameTurn, const SGameState *state, STurn *turn);
+	virtual bool PlayTurn(unsigned int gameTurn, const SGameState* state, STurn* turn) { return false; };
 
 protected:
 	const unsigned int Id;

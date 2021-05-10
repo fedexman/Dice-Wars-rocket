@@ -1,9 +1,10 @@
 #pragma once
 #include "src/StrategyDummy.h"
-class StrategyBasique :
+class StrategyBasic :
     public StrategyDummy
 {
 public:
-	StrategyBasique(unsigned int id, unsigned int nbPlayer, const SMap* map) : StrategyDummy(id, nbPlayer, map) {};
+	StrategyBasic(unsigned int id, unsigned int nbPlayer, const SMap* map) : StrategyDummy(id, nbPlayer, map) {};
+	bool PlayTurn(unsigned int gameTurn, const SGameState *state, STurn *turn);
 };
 
