@@ -14,7 +14,8 @@ StrategyDummy::StrategyDummy(unsigned int id, unsigned int nbPlayer, const SMap*
 		Map.cells[i].infos = map->cells[i].infos; 
 		Map.cells[i].nbNeighbors = map->cells[i].nbNeighbors; 
 		Map.cells[i].neighbors = new pSCell[Map.cells[i].nbNeighbors];
-		for (unsigned int j = 0; j < Map.cells[i].nbNeighbors; ++j) Map.cells[i].neighbors[j] = map->cells[i].neighbors[j];
+		for (unsigned int j = 0; j < Map.cells[i].nbNeighbors; ++j) Map.cells[i].neighbors[j] = &Map.cells[map->cells[i].neighbors[j]->infos.id];
+		//&Map.cells[map->cells[i].neighbors[j]->infos.id] permet de trouver l'id du neighbords et de renvoyer le pointeur de cette cellule portant cette id
 	}
 }
 
@@ -72,28 +73,15 @@ bool StrategyDummy::PlayTurn(unsigned int gameTurn, const SGameState* state, STu
 	}
 	auto To = cellsAttackable[0]->infos.id;
 	for (auto& it : cellsAttackable) {
+		std::cout << To << ' ' << Map.nbCells << std::endl;
 		if (it->infos.nbDices > Map.cells[To].infos.nbDices) {//trouve la case ennemie en partant de from avec le moins de des
 			To = it->infos.id;
 		}
 	}
 	turn->cellFrom = From;
 	turn->cellTo = To;
+	std::cout << "end of turn : no problem" << std::endl;
 	return true;
-	//	auto& From = Map.cells[turn->cellFrom];
-	//	unsigned int i = 0;
-	//	while ( i < From.nbNeighbors && From.neighbors[i]->infos.owner == Id ) i++;//trouve la premiere case qui nous appartient pas possibilité qui y ait pas de voisin donc faute
-	//	turn->cellTo = i;
-	//	std::cout << "From.nb" << From.nbNeighbors << std::endl;
-	//	for (i; i < From.nbNeighbors; i++)
-	//	{
-	//		if (From.neighbors[i]->infos.id != Id && From.neighbors[i]->infos.nbDices < From.infos.nbDices && From.neighbors[i]->infos.nbDices < From.neighbors[turn->cellTo]->infos.nbDices) {//verifie que cette case nous appartient pas et que elle a plus de des que la precedente
-	//			turn->cellTo = i;
-	//		}
-	//
-	//	}
-	//	std::cout << "fin de choix : from " << From.infos.id << " " << turn->cellFrom << std::endl;
-	//	std::cout << "to " << turn->cellTo;
-	//	return(true);
 }
 
 
