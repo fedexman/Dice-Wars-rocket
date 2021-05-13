@@ -7,6 +7,12 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 	for (unsigned int i = 0; i < Map.nbCells; ++i) {
 		Map.cells[i].infos = state->cells[i];//on acutalise les nouvelles infos du tour
 	}
+	for (unsigned int i = 0; i < 8; i++) {
+		points[i] = state->points[i];	// Points de chaque joueur
+		diceStock[i] = state->diceStock[i];	// R�serve de d�s de chaque joueur
+	}
+	nbCells = state->nbCells;
+	
 
 	if (!InitTurn()) { // pas de case jouable
 		return false;
@@ -14,6 +20,20 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 	// determiner le mode
 	// appeler la fonction mode correspondante
 
+
+	// stratégie se déclenche lorque le gain de dés est supérieur a tout ceux des adversaires
+	// condition mode end game : avoir plus de case que les autres joueurs
+	unsigned int max = 0;
+	unsigned int index;
+	for (unsigned int i = 0; i < 8; i++) {
+		if (points[i] > max) {
+			max = points[i];
+			index = i;
+		}
+	}
+	if (index == Id) {
+		// appel de la strategie endgame
+	}
 }
 
 bool StrategyAdvanced::InitTurn()
@@ -86,11 +106,28 @@ bool StrategyAdvanced::Middlegame(STurn* turn)
 
 bool StrategyAdvanced::Endgame(STurn* turn)
 {
-	// strat�gie se d�clenche lorque le gain de d�s est sup�rieur a tout ceux des adversaires
 
-	// attendre les stacks de 8 d�s sur toutes les cases
+	// attaquer seulement avec un stock de 7 dés 
+	if (diceStock[Id] < 7) {
+		return false;
+	}
 
-	// attaquer seulement avec un stock de 7 d�s 
+	// attendre les stacks de 8 dés sur toutes les cases
+	for (unsigned int i = 0; i < Map.nbCells; ++i) {
+		if (Map.cells[i].infos.owner == Id && Map.cells[i].infos.nbDices < 8 ) {
+			return false;
+		}
+	}
+
+	// on attaque si l'opposant a 7 dés ou moins
+	for (auto& it : playableAttackable) {//parcours tous les cases attackables pour chaque cases playable
+		for (auto& itAttack : it.second) {
+			if(itAttack->infos.nbDices <= 7){
+				turn->cellFrom = it.first->infos.id;
+				turn->cellTo = itAttack->infos.id;
+			}
+		}
+	}
 	return false;
 }
 

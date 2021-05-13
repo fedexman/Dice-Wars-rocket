@@ -8,7 +8,7 @@ bool StrategyBasicv2::PlayTurn(unsigned int gameTurn, const SGameState* state, S
 		Map.cells[i].infos = state->cells[i];//on acutalise les nouvelles infos du tour
 	}
 
-	for (unsigned i = 0; i < Map.nbCells; ++i) {//permet de trouver tous les cases jouables
+	for (unsigned int i = 0; i < Map.nbCells; ++i) {//permet de trouver tous les cases jouables
 		if (Map.cells[i].infos.owner == Id && Map.cells[i].infos.nbDices > 1) {
 			for (unsigned j = 0; j < Map.cells[i].nbNeighbors; ++j) {//au moins une case enemi
 				if (Map.cells[i].neighbors[j]->infos.owner != Id) {

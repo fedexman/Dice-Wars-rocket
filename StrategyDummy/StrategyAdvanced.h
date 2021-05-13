@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "src/StrategyDummy.h"
 #include <vector>
 #include <iostream>
@@ -18,6 +18,10 @@ public:
 protected:
 	std::vector<std::pair<pSCell, std::vector<pSCell>>> playableAttackable;
 	//contient en first toutes les cases playable, et en second un vector de toutes les cases attackables depuis cette case
+
+	unsigned int nbCells;
+	unsigned int points[8];	// Points de chaque joueur
+	unsigned int diceStock[8];	// R�serve de d�s de chaque joueur
 	
 	enum Status {
 		startgame,
