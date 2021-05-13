@@ -1,12 +1,13 @@
 #include "interface_lib.h"
 #include "Strategy.h"
+#include "../StrategyAdvanced.h"
 #include <iostream>
 
 API_EXPORT void InitStrategy(SInfo* info)
 {
 	std::cout << "InitStrategy" << std::endl;
 
-	info->SetName("Strategie basicv2");
+	info->SetName("Strategie Advanced");
 	info->AddMember("Felix, Axel, Vico, Malo");
 }
 
@@ -25,7 +26,7 @@ API_EXPORT void StrategyDelete(IStrategy* obj)
 void Strategy::InitGame(unsigned int id, unsigned int nbPlayer, const SMap* map)
 {
 	if (Current) delete Current;
-	Current = new StrategyBasicv2(id, nbPlayer, map);
+	Current = new StrategyAdvanced(id, nbPlayer, map);
 }
 
 bool Strategy::PlayTurn(unsigned int gameTurn, const SGameState *state, STurn *turn)

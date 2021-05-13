@@ -51,14 +51,26 @@ bool StrategyAdvanced::InitTurn()
 	return true;
 }
 
+unsigned int* StrategyAdvanced::Pathfinding(unsigned int IdA, unsigned int IdB)
+{
+	
+	return nullptr;//aucun chemin possible
+}
+
 bool StrategyAdvanced::Startgame(STurn* turn)
 {
-	// rassembler les dés dans un coin de map
-	//faire cette stratégie tant que tous les dés ne sont pas réuni
+	auto LessNeighbors = 0;
+	for (unsigned int i = 0; i < Map.nbCells;++i) {//variable avec less neighors est en bord de map, on va tenter de reunir toutes nos cases la bas
+		if (Map.cells[i].nbNeighbors < Map.cells[LessNeighbors].nbNeighbors) {
+			LessNeighbors = Map.cells->infos.id;
+		}
+	}
+	// rassembler les dï¿½s dans un coin de map
+	//faire cette stratï¿½gie tant que tous les dï¿½s ne sont pas rï¿½uni
 
 	// trouver la case avec le moins de voisin la plus proche
 
-	// diriger les dés vers cette case
+	// diriger les dï¿½s vers cette case
 
 
 	return false;
@@ -74,11 +86,11 @@ bool StrategyAdvanced::Middlegame(STurn* turn)
 
 bool StrategyAdvanced::Endgame(STurn* turn)
 {
-	// stratégie se déclenche lorque le gain de dés est supérieur a tout ceux des adversaires
+	// stratï¿½gie se dï¿½clenche lorque le gain de dï¿½s est supï¿½rieur a tout ceux des adversaires
 
-	// attendre les stacks de 8 dés sur toutes les cases
+	// attendre les stacks de 8 dï¿½s sur toutes les cases
 
-	// attaquer seulement avec un stock de 7 dés 
+	// attaquer seulement avec un stock de 7 dï¿½s 
 	return false;
 }
 

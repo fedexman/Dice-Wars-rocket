@@ -1,12 +1,14 @@
 #pragma once
 #include "src/StrategyDummy.h"
 #include <vector>
+#include <iostream>
 class StrategyAdvanced : public StrategyDummy
 {
 public:
-	StrategyAdvanced(unsigned int id, unsigned int nbPlayer, const SMap* map) : StrategyDummy(id, nbPlayer, map) {};
+	StrategyAdvanced(unsigned int id, unsigned int nbPlayer, const SMap* map) : StrategyDummy(id, nbPlayer, map) { std::cout << "ADVANCED" << std::endl; };
 	bool PlayTurn(unsigned int gameTurn, const SGameState* state, STurn* turn);
 	bool InitTurn();
+	unsigned int* Pathfinding(unsigned int IdA, unsigned int IdB);
 
 	bool Startgame(STurn* turn);
 	bool Middlegame(STurn* turn);
