@@ -33,6 +33,9 @@
     <ClInclude Include="StrategyBasicv2.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="StrategyAdvanced.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\strategy.cpp">
@@ -45,6 +48,9 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="StrategyBasicv2.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="StrategyAdvanced.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>
