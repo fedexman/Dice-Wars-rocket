@@ -53,16 +53,32 @@ bool StrategyAdvanced::InitTurn()
 
 bool StrategyAdvanced::Startgame(STurn* turn)
 {
+	// rassembler les dés dans un coin de map
+	//faire cette stratégie tant que tous les dés ne sont pas réuni
+
+	// trouver la case avec le moins de voisin la plus proche
+
+	// diriger les dés vers cette case
+
+
 	return false;
 }
 
 bool StrategyAdvanced::Middlegame(STurn* turn)
 {
+	// prendre les cases facile ( proba 90 % )
+
+	// sinon attendre 
 	return false;
 }
 
 bool StrategyAdvanced::Endgame(STurn* turn)
 {
+	// stratégie se déclenche lorque le gain de dés est supérieur a tout ceux des adversaires
+
+	// attendre les stacks de 8 dés sur toutes les cases
+
+	// attaquer seulement avec un stock de 7 dés 
 	return false;
 }
 
