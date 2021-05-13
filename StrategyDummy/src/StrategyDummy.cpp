@@ -6,7 +6,7 @@ StrategyDummy::StrategyDummy(unsigned int id, unsigned int nbPlayer, const SMap*
 	Id(id),
 	NbPlayer(nbPlayer)
 {
-	// faire une copie enti�re de la structure map localement dans l'objet Map
+	// faire une copie entiére de la structure map localement dans l'objet Map
 	Map.cells = new SCell[map->nbCells];
 	Map.nbCells = map->nbCells;
 	std::cout << map->nbCells << std::endl;//on actualise les cells de la maps
@@ -23,7 +23,7 @@ StrategyDummy::StrategyDummy(unsigned int id, unsigned int nbPlayer, const SMap*
 
 StrategyDummy::~StrategyDummy()
 {
-	// d�truire proprement la structure Map
+	// détruire proprement la structure Map
 
 	for (unsigned int i = 0; i < Map.nbCells; ++i) {
 		delete[] Map.cells[i].neighbors;

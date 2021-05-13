@@ -21,7 +21,7 @@ protected:
 
 	unsigned int nbCells;
 	unsigned int points[8];	// Points de chaque joueur
-	unsigned int diceStock[8];	// R�serve de d�s de chaque joueur
+	unsigned int diceStock[8];	// Réserve de dés de chaque joueur
 	
 	enum Status {
 		startgame,

@@ -9,7 +9,7 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 	}
 	for (unsigned int i = 0; i < 8; i++) {
 		points[i] = state->points[i];	// Points de chaque joueur
-		diceStock[i] = state->diceStock[i];	// R�serve de d�s de chaque joueur
+		diceStock[i] = state->diceStock[i];	// Réserve de dés de chaque joueur
 	}
 	nbCells = state->nbCells;
 	
@@ -85,12 +85,12 @@ bool StrategyAdvanced::Startgame(STurn* turn)
 			LessNeighbors = Map.cells->infos.id;
 		}
 	}
-	// rassembler les d�s dans un coin de map
-	//faire cette strat�gie tant que tous les d�s ne sont pas r�uni
+	// rassembler les dés dans un coin de map
+	//faire cette stratégie tant que tous les dés ne sont pas réuni
 
 	// trouver la case avec le moins de voisin la plus proche
 
-	// diriger les d�s vers cette case
+	// diriger les dés vers cette case
 
 
 	return false;
