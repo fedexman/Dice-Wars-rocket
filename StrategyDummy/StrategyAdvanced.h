@@ -7,19 +7,16 @@ class StrategyAdvanced : public StrategyDummy
 public:
 	StrategyAdvanced(unsigned int id, unsigned int nbPlayer, const SMap* map) : StrategyDummy(id, nbPlayer, map) { std::cout << "ADVANCED" << std::endl; };
 	bool PlayTurn(unsigned int gameTurn, const SGameState* state, STurn* turn);
-	bool InitTurn();
+	bool InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
 	unsigned int* Pathfinding(unsigned int IdA, unsigned int IdB);
 
-	bool Startgame(STurn* turn);
-	bool Middlegame(STurn* turn);
-	bool Endgame(STurn* turn);
+	bool Startgame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
+	bool Middlegame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
+	bool Endgame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
 
 	~StrategyAdvanced();
 protected:
-	std::vector<std::pair<pSCell, std::vector<pSCell>>> playableAttackable;
-	//contient en first toutes les cases playable, et en second un vector de toutes les cases attackables depuis cette case
 
-	unsigned int nbCells;
 	unsigned int points[8];	// Points de chaque joueur
 	unsigned int diceStock[8];	// Réserve de dés de chaque joueur
 	
