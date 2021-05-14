@@ -139,25 +139,24 @@ bool StrategyAdvanced::Endgame(STurn* turn,std::vector<std::pair<pSCell, std::ve
 		return false;
 	}
 
-	// attendre les stacks de 8 dés sur toutes les cases
-	for (unsigned int i = 0; i < Map.nbCells; ++i) {
-		if (Map.cells[i].infos.owner == Id && Map.cells[i].infos.nbDices < 8 ) {
-			std::cout << "strat endgame on ne joue pas une des cases n'as pas 8 dés" << std::endl;
-			return false;
-		}
-	}
-
-	// on attaque si l'opposant a 7 dés ou moins
+	// on attaque si l'opposant la ou on a le plus de chance de gagner en priorité sinon on attaque un block de 8 dés
+	pSCell bestCellP = playableAttackable.begin()->first; // meilleur cellule depuis laquelle on attaque
+	pSCell bestCellA = playableAttackable.begin()->second.operator[](0); // meilleur cellule a attaquer
+	int bestDiff = playableAttackable[0].first->infos.nbDices - playableAttackable[0].second.operator[](0)->infos.nbDices;// nb de dés de différence entre attaquant et attaqué
 	for (auto& it : playableAttackable) {//parcours tous les cases attackables pour chaque cases playable
 		for (auto& itAttack : it.second) {
-			if(itAttack->infos.nbDices <= 7){
-				turn->cellFrom = it.first->infos.id;
-				turn->cellTo = itAttack->infos.id;
-				std::cout << " strat endgame on joue, id attaquant " << turn->cellFrom << "id defense : " << turn->cellTo << std::endl;
-				return true;
+			const int diff = it.first->infos.nbDices - itAttack->infos.nbDices;
+			if (diff > bestDiff) {//trouve la case avec le plus grand ecart de des avec son adversere
+				bestDiff = diff;
+				bestCellP = it.first;//meilleur case d'ou partir
+				bestCellA = itAttack;//meilleur case a attaquer
 			}
 		}
 	}
+	turn->cellFrom = bestCellP->infos.id;
+	turn->cellTo = bestCellA->infos.id;
+	std::cout << " strat endgame on joue, id attaquant " << turn->cellFrom << "id defense : " << turn->cellTo << std::endl;
+	return true;
 }
 
 StrategyAdvanced::~StrategyAdvanced()
