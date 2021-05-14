@@ -31,8 +31,11 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 			index = i;
 		}
 	}
-	if (index == Id) {
-		// appel de la strategie endgame
+	if (index == Id) { // strategie endgame
+		return Endgame(turn);
+	}
+	else { //stratégie midgame
+		
 	}
 }
 
@@ -99,8 +102,27 @@ bool StrategyAdvanced::Startgame(STurn* turn)
 bool StrategyAdvanced::Middlegame(STurn* turn)
 {
 	// prendre les cases facile ( proba 90 % )
-
-	// sinon attendre 
+	pSCell bestCellP = playableAttackable.begin()->first; // meilleur cellule depuis laquelle on attaque
+	pSCell bestCellA = playableAttackable.begin()->second.operator[](0); // meilleur cellule a attaquer
+	int bestDiff = playableAttackable[0].first->infos.nbDices - playableAttackable[0].second.operator[](0)->infos.nbDices;// nb de dés de différence entre attaquant et attaqué
+	for (auto& it : playableAttackable) {//parcours tous les cases attackables pour chaque cases playable
+		for (auto& itAttack : it.second) {
+			const int diff = it.first->infos.nbDices - itAttack->infos.nbDices;
+			if (diff > bestDiff) {//trouve la case avec le plus grand ecart de des avec son adversere
+				bestDiff = diff;
+				bestCellP = it.first;//meilleur case d'ou partir
+				bestCellA = itAttack;//meilleur case a attaquer
+			}
+		}
+	}
+	if (bestDiff > 0) { //si la bestDiff est superieur a 0 on des chance remporter la case adverse donc on joue
+		turn->cellFrom = bestCellP->infos.id;
+		turn->cellTo = bestCellA->infos.id;
+		std::cout << " strat midgame on joue, id attaquant " <<turn->cellFrom<<"id defense : "<<turn->cellTo<< std::endl;
+		return true;
+	}
+	// sinon attendre
+	std::cout << "strat midgame on ne joue pas, pas d'avantage sur les opposants" << std::endl;
 	return false;
 }
 
@@ -109,12 +131,14 @@ bool StrategyAdvanced::Endgame(STurn* turn)
 
 	// attaquer seulement avec un stock de 7 dés 
 	if (diceStock[Id] < 7) {
+		std::cout << "strat endgame on ne joue pas on ne possède pas 7 dés en stock" << std::endl;
 		return false;
 	}
 
 	// attendre les stacks de 8 dés sur toutes les cases
 	for (unsigned int i = 0; i < Map.nbCells; ++i) {
 		if (Map.cells[i].infos.owner == Id && Map.cells[i].infos.nbDices < 8 ) {
+			std::cout << "strat endgame on ne joue pas une des cases n'as pas 8 dés" << std::endl;
 			return false;
 		}
 	}
@@ -125,10 +149,11 @@ bool StrategyAdvanced::Endgame(STurn* turn)
 			if(itAttack->infos.nbDices <= 7){
 				turn->cellFrom = it.first->infos.id;
 				turn->cellTo = itAttack->infos.id;
+				std::cout << " strat endgame on joue, id attaquant " << turn->cellFrom << "id defense : " << turn->cellTo << std::endl;
+				return true;
 			}
 		}
 	}
-	return false;
 }
 
 StrategyAdvanced::~StrategyAdvanced()
