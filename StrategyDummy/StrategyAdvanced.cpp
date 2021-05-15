@@ -168,18 +168,18 @@ bool StrategyAdvanced::Endgame(STurn* turn,std::vector<std::pair<pSCell, std::ve
 
 	// attaquer seulement avec un stock de 7 dés ou plus a la fin du tour
 
-	unsigned int future_dice_stock = 0; // nb de dés donné à la fin du tour
-	unsigned int missing_dices = 0; // nb de dés manquant pour être plein de 8 dés
+	int future_dice_stock = 0; // nb de dés donné à la fin du tour
+	int missing_dices = 0; // nb de dés manquant pour être plein de 8 dés
 	for (unsigned int i = 0; i < Map.nbCells; ++i) {
 		if (Map.cells[i].infos.owner == Id) {
 			future_dice_stock += 1;
-			missing_dices += 8 - Map.cells[i].infos.nbDices;
+			missing_dices += (8 - Map.cells[i].infos.nbDices);
 		}
 	}
-
 	if (future_dice_stock - missing_dices < 7) {
 		return false;
 	}
+	outputLog << (future_dice_stock - missing_dices) << std::endl;
 
 	// on attaque si l'opposant la ou on a le plus de chance de gagner en priorité sinon on attaque un block de 8 dés
 	pSCell bestCellP = playableAttackable.begin()->first; // meilleur cellule depuis laquelle on attaque
