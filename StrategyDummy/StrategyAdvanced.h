@@ -2,10 +2,12 @@
 #include "src/StrategyDummy.h"
 #include <vector>
 #include <iostream>
+#include <fstream>
+
 class StrategyAdvanced : public StrategyDummy
 {
 public:
-	StrategyAdvanced(unsigned int id, unsigned int nbPlayer, const SMap* map) : StrategyDummy(id, nbPlayer, map) { std::cout << "ADVANCED" << std::endl; };
+	StrategyAdvanced(unsigned int id, unsigned int nbPlayer, const SMap* map);
 	bool PlayTurn(unsigned int gameTurn, const SGameState* state, STurn* turn);
 	bool InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
 	unsigned int* Pathfinding(unsigned int IdA, unsigned int IdB);
@@ -16,15 +18,17 @@ public:
 
 	~StrategyAdvanced();
 protected:
-
-	unsigned int points[8];	// Points de chaque joueur
-	unsigned int diceStock[8];	// Réserve de dés de chaque joueur
+	std::ofstream outputLog;
+	unsigned int points[8] = {};	// Points de chaque joueur
+	unsigned int diceStock[8] = {};	// Réserve de dés de chaque joueur
+	unsigned int innerGameTurn = {};
+	int turnCount = -1;
 	
-	enum Status {
+	enum class Status {
 		startgame,
 		middlegame,
 		endgame
 	};
-	Status status = startgame; // mode de jeu jeu suivant l'avancement de la partie
+	Status status = Status::startgame; // mode de jeu jeu suivant l'avancement de la partie
 };
 

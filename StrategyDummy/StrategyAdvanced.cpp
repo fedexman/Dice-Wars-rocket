@@ -1,6 +1,18 @@
 #include "StrategyAdvanced.h"
 #include <iostream>
 #include <vector>
+#include <fstream>
+
+StrategyAdvanced::StrategyAdvanced(unsigned int id, unsigned int nbPlayer, const SMap* map) : StrategyDummy(id, nbPlayer, map) 
+{
+	std::cout << "ADVANCED" << std::endl;
+	outputLog.open("log.txt");
+	if (outputLog.is_open())
+	{
+		outputLog << "log strategy : \n";
+	}
+	else std::cout << "Unable to open file";
+}
 
 bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, STurn* turn)
 {
@@ -9,12 +21,31 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 	}
 	for (unsigned int i = 0; i < 8 && i < NbPlayer; i++) {
 		points[i] = state->points[i];	// Points de chaque joueur
-		std::cout << points[i] << " ";
 		diceStock[i] = state->diceStock[i];	// Réserve de dés de chaque joueur
 	}
-
 	std::vector<std::pair<pSCell, std::vector<pSCell>>> playableAttackable;
 	//contient en first toutes les cases playable, et en second un vector de toutes les cases attackables depuis cette case
+	if (gameTurn != turnCount) {
+		innerGameTurn = 0;
+		turnCount = gameTurn;
+
+		//determination nouvelle strat
+		// stratégie se déclenche lorque le gain de dés est supérieur a tout ceux des adversaires
+		// condition mode end game : avoir plus de case que les autres joueurs
+		unsigned int index = 0;
+		for (unsigned int i = 0; i < 8 && i < NbPlayer; i++) {
+			if (points[i] > points[index]) {
+				index = i;
+			}
+		}
+		if (index == Id) { // strategie endgame
+			status = Status::endgame;
+		}
+		else { //stratégie midgame
+			status = Status::middlegame;
+		}
+	}
+	else { innerGameTurn++; }
 
 	if (!InitTurn(playableAttackable)) { // initialise la variable playableAttackable et return fasle si ya pas de case jouable
 		return false;
@@ -22,21 +53,22 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 	// determiner le mode
 	// appeler la fonction mode correspondante
 
+	switch (status)
+	{
+	case StrategyAdvanced::Status::startgame:
+		//
+		break;
+	case StrategyAdvanced::Status::middlegame:
+		return Middlegame(turn, playableAttackable);
+		break;
+	case StrategyAdvanced::Status::endgame:
+		return Endgame(turn, playableAttackable);
+		break;
+	default:
+		throw("pourquoi on est la");
+		break;
+	}
 
-	// stratégie se déclenche lorque le gain de dés est supérieur a tout ceux des adversaires
-	// condition mode end game : avoir plus de case que les autres joueurs
-	unsigned int index = 0;
-	for (unsigned int i = 0; i < 8&& i < NbPlayer; i++) {
-		if (points[i] > points[index]) {
-			index = i;
-		}
-	}
-	if (index == Id) { // strategie endgame
-		return Endgame(turn,playableAttackable);
-	}
-	else { //stratégie midgame
-		return Middlegame(turn,playableAttackable);
-	}
 }
 
 bool StrategyAdvanced::InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable)//init la variable playableAttackable
@@ -55,7 +87,7 @@ bool StrategyAdvanced::InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell
 		}
 	}
 	if (playableAttackable.empty()) {
-		std::cout << "end of turn : no more playable cell" << std::endl;
+		outputLog << Id << ": end of turn : no more playable cell" << std::endl;
 		return false;//si aucune case jouable, on finit le tour
 	}
 	//on a donc toutes les cases jouables, on va maintenant trouver toutes les cases attackable depuis nos cases playable
@@ -69,7 +101,7 @@ bool StrategyAdvanced::InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell
 		}
 	}
 	if (emptyAttackable) {
-		std::cout << "end of turn : no attackable cell" << std::endl;
+		outputLog << Id <<": end of turn : no attackable cell" << std::endl;
 		return false;//si aucune case jouable, on finit le tour
 	}
 	return true;
@@ -79,6 +111,7 @@ unsigned int* StrategyAdvanced::Pathfinding(unsigned int IdA, unsigned int IdB)
 {
 	std::vector<std::vector<unsigned int>> quickestPath;
 	quickestPath.resize(Map.nbCells);//Met la size pour le nombre de cells
+	//trouver le chemin ou ya le moins de des ennemi et qui ne passe pas par des cases alies
 	//on a donc un vector pour chaque case de la map
 
 	return nullptr;//aucun chemin possible
@@ -122,11 +155,11 @@ bool StrategyAdvanced::Middlegame(STurn* turn,std::vector<std::pair<pSCell, std:
 	if (bestDiff > 0) { //si la bestDiff est superieur a 0 on des chance remporter la case adverse donc on joue
 		turn->cellFrom = bestCellP->infos.id;
 		turn->cellTo = bestCellA->infos.id;
-		std::cout << " strat midgame on joue, id attaquant " <<turn->cellFrom<<"id defense : "<<turn->cellTo<< std::endl;
+		outputLog << Id <<": strat midgame on joue, id attaquant " <<turn->cellFrom<<"id defense : "<<turn->cellTo<< std::endl;
 		return true;
 	}
 	// sinon attendre
-	std::cout << "strat midgame on ne joue pas, pas d'avantage sur les opposants" << std::endl;
+	outputLog << Id<< ": strat midgame on ne joue pas, pas d'avantage sur les opposants" << std::endl;
 	return false;
 }
 
@@ -135,7 +168,7 @@ bool StrategyAdvanced::Endgame(STurn* turn,std::vector<std::pair<pSCell, std::ve
 
 	// attaquer seulement avec un stock de 7 dés 
 	if (diceStock[Id] < 7) {
-		std::cout << "strat endgame on ne joue pas on ne possède pas 7 dés en stock" << std::endl;
+		outputLog << Id<<": strat endgame on ne joue pas on ne possède pas 7 dés en stock" << std::endl;
 		return false;
 	}
 
@@ -143,9 +176,10 @@ bool StrategyAdvanced::Endgame(STurn* turn,std::vector<std::pair<pSCell, std::ve
 	pSCell bestCellP = playableAttackable.begin()->first; // meilleur cellule depuis laquelle on attaque
 	pSCell bestCellA = playableAttackable.begin()->second.operator[](0); // meilleur cellule a attaquer
 	int bestDiff = playableAttackable[0].first->infos.nbDices - playableAttackable[0].second.operator[](0)->infos.nbDices;// nb de dés de différence entre attaquant et attaqué
+	int diff {};
 	for (auto& it : playableAttackable) {//parcours tous les cases attackables pour chaque cases playable
 		for (auto& itAttack : it.second) {
-			const int diff = it.first->infos.nbDices - itAttack->infos.nbDices;
+			diff = it.first->infos.nbDices - itAttack->infos.nbDices;
 			if (diff > bestDiff) {//trouve la case avec le plus grand ecart de des avec son adversere
 				bestDiff = diff;
 				bestCellP = it.first;//meilleur case d'ou partir
@@ -155,10 +189,11 @@ bool StrategyAdvanced::Endgame(STurn* turn,std::vector<std::pair<pSCell, std::ve
 	}
 	turn->cellFrom = bestCellP->infos.id;
 	turn->cellTo = bestCellA->infos.id;
-	std::cout << " strat endgame on joue, id attaquant " << turn->cellFrom << "id defense : " << turn->cellTo << std::endl;
+	outputLog << Id<<": strat endgame on joue, id attaquant " << turn->cellFrom << "id defense : " << turn->cellTo << std::endl;
 	return true;
 }
 
 StrategyAdvanced::~StrategyAdvanced()
 {
+	outputLog.close();
 }
