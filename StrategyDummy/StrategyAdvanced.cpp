@@ -107,15 +107,28 @@ bool StrategyAdvanced::InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell
 	return true;
 }
 
-unsigned int* StrategyAdvanced::Pathfinding(unsigned int IdA, unsigned int IdB)
+std::pair<unsigned int, std::vector<unsigned int>> StrategyAdvanced::Pathfinding(unsigned int depart, unsigned int arrive)
 {
+	/*
 	std::vector<std::vector<unsigned int>> quickestPath;
 	quickestPath.resize(Map.nbCells);//Met la size pour le nombre de cells
-	//trouver le chemin ou ya le moins de des ennemi et qui ne passe pas par des cases alies
-	//on a donc un vector pour chaque case de la map
+	*/
 
-	return nullptr;//aucun chemin possible
+	//recursif
+	/*
+	arret  id de la case est celui recherché
+	return nb_dice,path
+	*/
+	/*
+	sinon nb_dice+= case.dice
+	return min(recursive(voisins))
+	*/
+
+
+
+	return std::pair<unsigned int, std::vector<unsigned int>>();
 }
+
 
 bool StrategyAdvanced::Startgame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable)
 {

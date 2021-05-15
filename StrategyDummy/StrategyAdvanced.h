@@ -10,11 +10,13 @@ public:
 	StrategyAdvanced(unsigned int id, unsigned int nbPlayer, const SMap* map);
 	bool PlayTurn(unsigned int gameTurn, const SGameState* state, STurn* turn);
 	bool InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
-	unsigned int* Pathfinding(unsigned int IdA, unsigned int IdB);
+	std::pair<unsigned int, std::vector<unsigned int>> Pathfinding(unsigned int depart, unsigned int arrive);
 
 	bool Startgame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
 	bool Middlegame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
 	bool Endgame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
+
+	
 
 	~StrategyAdvanced();
 protected:
