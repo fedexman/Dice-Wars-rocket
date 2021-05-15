@@ -9,7 +9,7 @@ StrategyAdvanced::StrategyAdvanced(unsigned int id, unsigned int nbPlayer, const
 	outputLog.open("log.txt");
 	if (outputLog.is_open())
 	{
-		outputLog << "log strategy : \n";
+		outputLog << "log strategy "<< __TIME__ << "\n";
 	}
 	else std::cout << "Unable to open file";
 }
@@ -28,7 +28,7 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 	if (gameTurn != turnCount) {
 		innerGameTurn = 0;
 		turnCount = gameTurn;
-
+		outputLog << std::endl << "TURN:" << turnCount <<std::endl;
 		//determination nouvelle strat
 		// stratégie se déclenche lorque le gain de dés est supérieur a tout ceux des adversaires
 		// condition mode end game : avoir plus de case que les autres joueurs
