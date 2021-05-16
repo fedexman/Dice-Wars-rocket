@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <algorithm>
 
 StrategyAdvanced::StrategyAdvanced(unsigned int id, unsigned int nbPlayer, const SMap* map) : StrategyDummy(id, nbPlayer, map) 
 {
@@ -107,26 +108,46 @@ bool StrategyAdvanced::InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell
 	return true;
 }
 
-std::pair<unsigned int, std::vector<unsigned int>> StrategyAdvanced::Pathfinding(unsigned int depart, unsigned int arrive)
+std::pair<std::vector<pSCell>, std::map <std::string, std::vector<int>>>& StrategyAdvanced::Pathfinding(std::pair<std::vector<pSCell>, std::map <std::string, std::vector<int>>>& informations)
 {
-	/*
-	std::vector<std::vector<unsigned int>> quickestPath;
-	quickestPath.resize(Map.nbCells);//Met la size pour le nombre de cells
-	*/
+	// std map contient : nb_dices , path , id_visited
+	// vecteur contient : cell de depart , cell d'arrivée
 
-	//recursif
-	/*
-	arret  id de la case est celui recherché
-	return nb_dice,path
-	*/
-	/*
-	sinon nb_dice+= case.dice
-	return min(recursive(voisins))
-	*/
+	// les id des cases de départ et d'arrivée sont les mêmes : arret de la récursion
+	auto depart = informations.first[0];
+	auto arrive = informations.first[1];
+	int min = 1000000;
+	std::pair<std::vector<pSCell>, std::map <std::string, std::vector<int>>> returninfo = {};
 
+	if (depart->infos.id == arrive->infos.id) {
+		if (Id != depart->infos.owner){
+			informations.second["nb_dices"][0] += depart->infos.nbDices; 
+		}
+		return informations;
+	}
+	else {
+		// mise a jour des informations
+		informations.second["nb_dices"][0] += informations.first[0]->infos.nbDices;
+		informations.second["path"].push_back(depart->infos.id);
+		informations.second["id_visited"].push_back(depart->infos.id);
 
-
-	return std::pair<unsigned int, std::vector<unsigned int>>();
+		// aller plus loin dans le chemin : trouver les voisins non visités
+		for (unsigned int i = 0; i < depart->nbNeighbors; i++) {
+			auto neighbor = depart->neighbors[i];
+			auto p = std::find(informations.second["id_visited"].begin(), informations.second["id_visited"].end(), neighbor->infos.id);
+			if (p != informations.second["id_visited"].end()){
+				// on a déjà visité cette case
+			}
+			else { // return nb min de dés avec les apels de fonctions de tous les voisins
+				informations.first[0] = neighbor; // nouvelle case de départ
+				auto info = Pathfinding(informations);
+				if (info.second["nb_dices"][0] < min) { // nb de dés plus petit
+					returninfo = info;
+				}
+			}
+		}
+		return Pathfinding(returninfo);
+	}
 }
 
 

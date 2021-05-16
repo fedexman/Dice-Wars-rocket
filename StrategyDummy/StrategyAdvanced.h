@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <map>
 
 class StrategyAdvanced : public StrategyDummy
 {
@@ -10,7 +11,7 @@ public:
 	StrategyAdvanced(unsigned int id, unsigned int nbPlayer, const SMap* map);
 	bool PlayTurn(unsigned int gameTurn, const SGameState* state, STurn* turn);
 	bool InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
-	std::pair<unsigned int, std::vector<unsigned int>> Pathfinding(unsigned int depart, unsigned int arrive);
+	std::pair<std::vector<pSCell>, std::map <std::string, std::vector<int>>>& Pathfinding(std::pair<std::vector<pSCell>, std::map <std::string, std::vector<int>>>& informations);
 
 	bool Startgame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
 	bool Middlegame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
