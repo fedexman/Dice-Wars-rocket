@@ -122,18 +122,19 @@ bool StrategyAdvanced::InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell
 std::pair<std::vector<pSCell>, std::map<std::string, std::vector<int>>>& StrategyAdvanced::initPathfinding(unsigned int iddepart, unsigned int idarrive)
 {
 	// vecteur contient : cell de depart , cell d'arrivée
-	pSCell depart = {};
-	pSCell arrive = {};
-
-	for (unsigned int i = 0; i < Map.nbCells; ++i) {
-		if (Map.cells[i].infos.id == iddepart) {
-			*depart = Map.cells[i];
-		}
-		if (Map.cells[i].infos.id == idarrive) {
-			*arrive = Map.cells[i];
-		}
-	}
-	std::vector<pSCell> cells = {depart, arrive};
+//	pSCell depart;
+//	pSCell arrive;
+//
+//	for (unsigned int i = 0; i < Map.nbCells; ++i) {
+//		if (Map.cells[i].infos.id == iddepart) {
+//			depart = &Map.cells[i];
+//		}
+//		if (Map.cells[i].infos.id == idarrive) {
+//			arrive = &Map.cells[i];
+//		}
+//	}
+//	std::vector<pSCell> cells = {depart, arrive};
+	std::vector<pSCell> cells = {&Map.cells[iddepart], &Map.cells[idarrive]};//tout ce qui est au dessus peut etre remplacer par ca ?
 
 	// std map contient : nb_dices , path 
 	std::vector<int> nb_dices = { 0 };
