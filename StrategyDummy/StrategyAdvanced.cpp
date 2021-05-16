@@ -203,12 +203,12 @@ bool StrategyAdvanced::Endgame(STurn* turn,std::vector<std::pair<pSCell, std::ve
 
 	// attaquer seulement avec un stock de 7 dés ou plus a la fin du tour
 
-	int future_dice_supply = diceStock[Id]; // nb de dés donné à la fin du tour 
+	int future_dice_supply = diceStock[Id] + points[Id]; // nb de dés donné à la fin du tour 
 	//la variable sera diceStock[Id] + points[Id]
 	int missing_dices = 0; // nb de dés manquant pour être plein de 8 dés
 	for (unsigned int i = 0; i < Map.nbCells; ++i) {
 		if (Map.cells[i].infos.owner == Id) {
-			future_dice_supply += 1;
+			//future_dice_supply += 1;
 			missing_dices += (8 - Map.cells[i].infos.nbDices);
 		}
 	}
