@@ -8,12 +8,29 @@
 class StrategyAdvanced : public StrategyDummy
 {
 public:
+
+	struct informations {
+	public:
+		informations(unsigned int iddepart, unsigned int idarrive, SMap Map);
+		informations(informations& v) = default;
+		informations(informations&& vec) = default;
+		~informations() = default;
+
+		informations& operator=(const informations& info) = default;
+		informations& operator=(informations&& info) = default;
+		friend std::ostream& operator<<(std::ostream& o, StrategyAdvanced::informations info);
+
+		unsigned int nb_dices;
+		pSCell depart;
+		pSCell arrive;
+		std::vector<unsigned int> path;
+	};
+
 	StrategyAdvanced(unsigned int id, unsigned int nbPlayer, const SMap* map);
 	bool PlayTurn(unsigned int gameTurn, const SGameState* state, STurn* turn);
 	bool InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
 
-	std::pair<std::vector<pSCell>, std::map <std::string, std::vector<int>>>& initPathfinding(unsigned int iddepart, unsigned int idarrive);
-	std::pair<std::vector<pSCell>, std::map <std::string, std::vector<int>>>& Pathfinding(std::pair<std::vector<pSCell>, std::map <std::string, std::vector<int>>>& informations);
+	StrategyAdvanced::informations& Pathfinding(StrategyAdvanced::informations& informations);
 
 	bool Startgame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
 	bool Middlegame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
