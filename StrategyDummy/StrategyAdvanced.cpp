@@ -17,6 +17,16 @@ StrategyAdvanced::StrategyAdvanced(unsigned int id, unsigned int nbPlayer, const
 
 bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, STurn* turn)
 {
+
+	auto informations = initPathfinding(1, 5);
+	auto mapinfo = informations.second;
+	outputLog << "nb_dices : " << mapinfo["nb_dices"][0] << std::endl;
+	int i = 0;
+	for (auto it : mapinfo["path"]) {
+		i++;
+		outputLog << "cell visited in : " << i << "cell id : " << it << std::endl;
+	}
+
 	for (unsigned int i = 0; i < Map.nbCells; ++i) {
 		Map.cells[i].infos = state->cells[i];//on acutalise les nouvelles infos du tour
 	}
@@ -109,6 +119,33 @@ bool StrategyAdvanced::InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell
 	return true;
 }
 
+std::pair<std::vector<pSCell>, std::map<std::string, std::vector<int>>>& StrategyAdvanced::initPathfinding(unsigned int iddepart, unsigned int idarrive)
+{
+	// vecteur contient : cell de depart , cell d'arrivée
+	pSCell depart = {};
+	pSCell arrive = {};
+
+	for (unsigned int i = 0; i < Map.nbCells; ++i) {
+		if (Map.cells[i].infos.id == iddepart) {
+			*depart = Map.cells[i];
+		}
+		if (Map.cells[i].infos.id == idarrive) {
+			*arrive = Map.cells[i];
+		}
+	}
+	std::vector<pSCell> cells = {depart, arrive};
+
+	// std map contient : nb_dices , path 
+	std::vector<int> nb_dices = { 0 };
+	std::vector<int> path = { 1 };
+
+	std::map<std::string, std::vector<int>> infopath { {"nb_dices", nb_dices}, {"path", path}, };
+
+	std::pair<std::vector<pSCell>, std::map<std::string, std::vector<int>>> informations = std::make_pair(cells, infopath);
+
+	return informations;
+}
+
 std::pair<std::vector<pSCell>, std::map <std::string, std::vector<int>>>& StrategyAdvanced::Pathfinding(std::pair<std::vector<pSCell>, std::map <std::string, std::vector<int>>>& informations)
 {
 	// std map contient : nb_dices , path , id_visited
@@ -117,6 +154,7 @@ std::pair<std::vector<pSCell>, std::map <std::string, std::vector<int>>>& Strate
 	// les id des cases de départ et d'arrivée sont les mêmes : arret de la récursion
 	auto depart = informations.first[0];
 	auto arrive = informations.first[1];
+
 	int min = 1000000;
 	std::pair<std::vector<pSCell>, std::map <std::string, std::vector<int>>> returninfo = {};
 
@@ -128,15 +166,14 @@ std::pair<std::vector<pSCell>, std::map <std::string, std::vector<int>>>& Strate
 	}
 	else {
 		// mise a jour des informations
-		informations.second["nb_dices"][0] += informations.first[0]->infos.nbDices;
+		informations.second["nb_dices"][0] += depart->infos.nbDices;
 		informations.second["path"].push_back(depart->infos.id);
-		informations.second["id_visited"].push_back(depart->infos.id);
 
 		// aller plus loin dans le chemin : trouver les voisins non visités
 		for (unsigned int i = 0; i < depart->nbNeighbors; i++) {
 			auto neighbor = depart->neighbors[i];
-			auto p = std::find(informations.second["id_visited"].begin(), informations.second["id_visited"].end(), neighbor->infos.id);
-			if (p != informations.second["id_visited"].end()){
+			auto p = std::find(informations.second["path"].begin(), informations.second["path"].end(), neighbor->infos.id);
+			if (p != informations.second["path"].end()){
 				// on a déjà visité cette case
 			}
 			else { // return nb min de dés avec les apels de fonctions de tous les voisins
@@ -147,7 +184,7 @@ std::pair<std::vector<pSCell>, std::map <std::string, std::vector<int>>>& Strate
 				}
 			}
 		}
-		return Pathfinding(returninfo);
+		return returninfo;
 	}
 }
 
@@ -173,7 +210,7 @@ bool StrategyAdvanced::Startgame(STurn* turn,std::vector<std::pair<pSCell, std::
 
 bool StrategyAdvanced::Middlegame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable)
 {
-	// prendre les cases facile ( proba 90 % )
+	// prendre les cases facile 
 	pSCell bestCellP = playableAttackable.begin()->first; // meilleur cellule depuis laquelle on attaque
 	pSCell bestCellA = playableAttackable.begin()->second.operator[](0); // meilleur cellule a attaquer
 	int bestDiff = playableAttackable[0].first->infos.nbDices - playableAttackable[0].second.operator[](0)->infos.nbDices;// nb de dés de différence entre attaquant et attaqué
