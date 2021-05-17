@@ -164,7 +164,41 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfinding(StrategyAdvanced::i
 	}
 }
 
-std::vector<unsigned int> StrategyAdvanced::cluster(unsigned int idcell)
+std::vector<std::vector<unsigned int>> StrategyAdvanced::All_cluster(unsigned int owner)
+{
+	// retourne un vecteur contenant les differents cluster du joueur avec l'Id owner
+	// les différents clusteer sont contenus dans des vecteurs
+	// les cells sont représentés par leur id
+
+	std::vector<std::vector<unsigned int>> all_cluster = {};
+
+	// on cherche les cells qui appartiennent a owner
+	for (unsigned int i = 0; i < Map.nbCells; i++) {
+		if (Map.cells[i].infos.owner == owner) {
+			
+			if (all_cluster.empty()) { // premier tour de boucle
+				all_cluster.push_back(Cluster(Map.cells[i].infos.id)); // on met le cluster appartenant a la première cell trouvé
+			}
+			else {
+				// on vérifie que la cell n'est pas déja présente dans un cluster que l'on a déja identifié
+				bool already_seen = false;
+				for (auto it = all_cluster.begin(); it != all_cluster.end(); it++) { // parcours des différents cluster enregistré
+					auto p = std::find(it->begin(), it->end(), Map.cells[i].infos.id);
+					if (p != it->end()) {
+						already_seen = true;
+						break;
+					}
+				}
+				if (!already_seen) {
+					all_cluster.push_back(Cluster(Map.cells[i].infos.id));
+				}
+			}
+		}
+	}
+	return all_cluster;
+}
+
+std::vector<unsigned int> StrategyAdvanced::Cluster(unsigned int idcell)
 {
 	// calcul de toutes les cases présente dans un cluster à partir de l'Id d'une cell à nous
 	
