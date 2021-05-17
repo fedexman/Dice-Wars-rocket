@@ -11,7 +11,7 @@ public:
 
 	struct informations {
 	public:
-		informations(unsigned int iddepart, unsigned int idarrive, SMap Map);
+		informations(unsigned int iddepart, unsigned int idarrive, SMap& Map);
 		informations(informations& v) = default;
 		informations(informations&& vec) = default;
 		~informations() = default;
@@ -30,7 +30,7 @@ public:
 	bool PlayTurn(unsigned int gameTurn, const SGameState* state, STurn* turn);
 	bool InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
 
-	StrategyAdvanced::informations& Pathfinding(StrategyAdvanced::informations& informations);
+	StrategyAdvanced::informations Pathfinding(StrategyAdvanced::informations informations);
 
 	bool Startgame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
 	bool Middlegame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);

@@ -1,47 +1,23 @@
-CXXFLAGS = -Wall -std=c++17 -fPIC -g
+PROJECTS := GenMap StrategyDummy
+
 ifdef debug
 	DIR = linux/debug
-	CXXFLAGS := $(CXXFLAGS) -g
 	SUFFIX = _d
 else
 	DIR = linux/release
 	SUFFIX =
 endif
 
-all: bin/$(DIR)/strategy$(SUFFIX).so bin/$(DIR)/genmap$(SUFFIX).so
+.PHONY: all $(PROJECTS)
+all: $(PROJECTS)
 
-bin/$(DIR)/strategy$(SUFFIX).so: temp/$(DIR)/strategy/strategy.o temp/$(DIR)/strategy/MyStrategy.o
-	mkdir -p temp/$(DIR)/strategy
-	$(CXX) $(CXXFLAGS) -o bin/$(DIR)/strategy$(SUFFIX).so -shared temp/$(DIR)/strategy/strategy.o temp/$(DIR)/strategy/MyStrategy.o
+export debug
 
-bin/$(DIR)/genmap$(SUFFIX).so: temp/$(DIR)/genmap/DefaultMap.o temp/$(DIR)/genmap/MapLoader.o temp/$(DIR)/genmap/StaticMapGenerator.o
-	mkdir -p temp/$(DIR)/genmap
-	$(CXX) $(CXXFLAGS) -o bin/$(DIR)/genmap$(SUFFIX).so -shared temp/$(DIR)/genmap/DefaultMap.o temp/$(DIR)/genmap/MapLoader.o temp/$(DIR)/genmap/StaticMapGenerator.o
+$(PROJECTS):
+	@echo "-------------------------------------------"
+	@echo "--- Compilation of the project '$@'"
+	@echo "---"
+	@$(MAKE) -C $@
 
-temp/$(DIR)/strategy/strategy.o: Strategy/src/strategy.cpp Strategy/src/interface_lib.h Commun/library.h Commun/IStrategyLib.h
-	mkdir -p temp/$(DIR)/strategy
-	$(CXX) $(CXXFLAGS) -c Strategy/src/strategy.cpp -o temp/$(DIR)/strategy/strategy.o
-
-temp/$(DIR)/strategy/MyStrategy.o: Strategy/src/MyStrategy.cpp Strategy/src/MyStrategy.h
-	mkdir -p temp/$(DIR)/strategy
-	$(CXX) $(CXXFLAGS) -c Strategy/src/MyStrategy.cpp -o temp/$(DIR)/strategy/MyStrategy.o
-
-temp/$(DIR)/genmap/DefaultMap.o: GenMap/src/DefaultMap.cpp GenMap/src/DefaultMap.h GenMap/src/MapLoader.h Commun/IMapLib.h
-	mkdir -p temp/$(DIR)/genmap
-	$(CXX) $(CXXFLAGS) -c GenMap/src/DefaultMap.cpp -o temp/$(DIR)/genmap/DefaultMap.o
-
-temp/$(DIR)/genmap/MapLoader.o: GenMap/src/MapLoader.cpp GenMap/src/MapLoader.h Commun/IMapLib.h
-	mkdir -p temp/$(DIR)/genmap
-	$(CXX) $(CXXFLAGS) -c GenMap/src/MapLoader.cpp -o temp/$(DIR)/genmap/MapLoader.o
-
-temp/$(DIR)/genmap/StaticMapGenerator.o: GenMap/src/StaticMapGenerator.cpp GenMap/src/interface_lib.h GenMap/src/MapLoader.h GenMap/src/DefaultMap.h Commun/library.h Commun/IMapLib.h
-	mkdir -p temp/$(DIR)/genmap
-	$(CXX) $(CXXFLAGS) -c GenMap/src/StaticMapGenerator.cpp -o temp/$(DIR)/genmap/StaticMapGenerator.o
-
-clean:
-	rm -rf bin/$(DIR)
-	rm -rf temp/$(DIR)
-	mkdir -p bin/$(DIR)
-
-run: bin/$(DIR)/dicewars bin/$(DIR)/strategy.so bin/$(DIR)/genmap.so bin/$(DIR)/gui.so bin/$(DIR)/referee.so
-	bin/$(DIR)/dicewars -r bin/$(DIR)/referee.so -m bin/$(DIR)/genmap.so -g bin/$(DIR)/gui.so -s bin/$(DIR)/strategy.so -s bin/$(DIR)/strategy.so
+run:
+	bin/$(DIR)/dicewars$(SUFFIX) -r bin/$(DIR)/referee$(SUFFIX).so -m bin/$(DIR)/genmap$(SUFFIX).so -g bin/$(DIR)/gui$(SUFFIX).so -s bin/$(DIR)/strategy$(SUFFIX).so -s bin/$(DIR)/strategy$(SUFFIX).so

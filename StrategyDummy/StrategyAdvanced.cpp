@@ -22,8 +22,6 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 		Map.cells[i].infos = state->cells[i];//on acutalise les nouvelles infos du tour
 	}
 
-	StrategyAdvanced::informations info(1, 20, Map);
-	outputLog <<info;
 
 	for (unsigned int i = 0; i < 8 && i < NbPlayer; i++) {
 		points[i] = state->points[i];	// Points de chaque joueur
@@ -59,6 +57,16 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 	}
 	// determiner le mode
 	// appeler la fonction mode correspondante
+
+	if (playableAttackable.size() > 1) {
+		StrategyAdvanced::informations info(playableAttackable[0].first->infos.id, playableAttackable[1].first->infos.id, Map);
+		StrategyAdvanced::informations info2 = Pathfinding(info);
+		outputLog << info2 << std::endl;
+		for (unsigned int j = 0; j < Map.cells[info2.path.back()].nbNeighbors; ++j) {
+			outputLog << Map.cells[info2.path.back()].neighbors[j]->infos.id << "||";
+		}
+		outputLog << playableAttackable[0].first->infos.id << "|" << playableAttackable[1].first->infos.id << std::endl;
+	}
 
 	switch (status)
 	{
@@ -114,7 +122,7 @@ bool StrategyAdvanced::InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell
 	return true;
 }
 
-StrategyAdvanced::informations& StrategyAdvanced::Pathfinding(StrategyAdvanced::informations& informations)
+StrategyAdvanced::informations StrategyAdvanced::Pathfinding(StrategyAdvanced::informations informations)
 {
 	// std map contient : nb_dices , path , id_visited
 	// vecteur contient : cell de depart , cell d'arrivée
@@ -122,35 +130,42 @@ StrategyAdvanced::informations& StrategyAdvanced::Pathfinding(StrategyAdvanced::
 	// les id des cases de départ et d'arrivée sont les mêmes : arret de la récursion
 
 	int min = 1000000;
-	StrategyAdvanced::informations returninfo(1,2,Map);
+	//StrategyAdvanced::informations returninfo=informations;
 
 	if (informations.depart->infos.id == informations.arrive->infos.id) {
 		if (Id != informations.depart->infos.owner) {
 			informations.nb_dices += informations.depart->infos.nbDices;
 		}
+		informations.path.push_back(informations.arrive->infos.id);
 		return informations;
 	}
 	else {
 		// mise a jour des informations
-		informations.nb_dices += informations.depart->infos.nbDices;
+		if (informations.depart->infos.owner) {
+			informations.nb_dices += informations.depart->infos.nbDices;
+		}
 		informations.path.push_back(informations.depart->infos.id);
 
 		// aller plus loin dans le chemin : trouver les voisins non visités
 		for (unsigned int i = 0; i < informations.depart->nbNeighbors; i++) {
 			auto neighbor = informations.depart->neighbors[i];
-			auto p = std::find(informations.path.begin(), informations.path.end(), neighbor->infos.id);
-			if (p != informations.path.end()) {
-				// on a déjà visité cette case
-			}
-			else { // return nb min de dés avec les apels de fonctions de tous les voisins
-				informations.depart = neighbor; // nouvelle case de départ
-				auto info = Pathfinding(informations);
-				if (info.nb_dices < min) { // nb de dés plus petit
-					returninfo = info;
+			if (neighbor->infos.owner != Id || neighbor->infos.id == informations.depart->infos.id) {
+
+				auto p = std::find(informations.path.begin(), informations.path.end(), neighbor->infos.id);
+				if (p != informations.path.end()) {
+					// on a déjà visité cette case
+				}
+				else { // return nb min de dés avec les apels de fonctions de tous les voisins
+					informations.depart = neighbor; // nouvelle case de départ
+					auto info = Pathfinding(informations);
+					if (info.nb_dices < min) { // nb de dés plus petit
+						//returninfo = info;
+						informations = info;
+					}
 				}
 			}
 		}
-		return returninfo;
+		return informations;
 	}
 	// TODO: insérer une instruction return ici
 }
@@ -248,14 +263,14 @@ StrategyAdvanced::~StrategyAdvanced()
 	outputLog.close();
 }
 
-StrategyAdvanced::informations::informations(unsigned int iddepart, unsigned int idarrive, SMap Map)
+StrategyAdvanced::informations::informations(unsigned int iddepart, unsigned int idarrive, SMap& Map)
 {
 	depart = &Map.cells[iddepart];
 	arrive = &Map.cells[idarrive];
 	nb_dices = 0;
 }
 
-std::ostream& operator<<(std::ostream& o, StrategyAdvanced::informations info)
+std::ostream & operator<<(std::ostream& o, StrategyAdvanced::informations info)
 {
 	o << "nb_dices : " << info.nb_dices <<"\npath : "<< std::endl;
 	unsigned int i = 0;
