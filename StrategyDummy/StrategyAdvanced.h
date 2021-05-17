@@ -31,6 +31,7 @@ public:
 	bool InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
 
 	StrategyAdvanced::informations Pathfinding(StrategyAdvanced::informations informations);
+	std::vector<unsigned int> cluster(unsigned int idcell);
 
 	bool Startgame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
 	bool Middlegame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);

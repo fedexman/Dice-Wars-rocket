@@ -124,11 +124,7 @@ bool StrategyAdvanced::InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell
 
 StrategyAdvanced::informations StrategyAdvanced::Pathfinding(StrategyAdvanced::informations informations)
 {
-	// std map contient : nb_dices , path , id_visited
-	// vecteur contient : cell de depart , cell d'arrivée
-
 	// les id des cases de départ et d'arrivée sont les mêmes : arret de la récursion
-
 	int min = 1000000;
 	//StrategyAdvanced::informations returninfo=informations;
 
@@ -149,13 +145,12 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfinding(StrategyAdvanced::i
 		// aller plus loin dans le chemin : trouver les voisins non visités
 		for (unsigned int i = 0; i < informations.depart->nbNeighbors; i++) {
 			auto neighbor = informations.depart->neighbors[i];
-			if (neighbor->infos.owner != Id || neighbor->infos.id == informations.depart->infos.id) {
-
+			if (neighbor->infos.owner != Id || neighbor->infos.id == informations.arrive->infos.id) {
+				// la case ne nous appartient pas ou la case est la case d'arrivée
 				auto p = std::find(informations.path.begin(), informations.path.end(), neighbor->infos.id);
-				if (p != informations.path.end()) {
-					// on a déjà visité cette case
-				}
-				else { // return nb min de dés avec les apels de fonctions de tous les voisins
+				if (p == informations.path.end()) {
+					 // on a jamais visité cette case
+					 // return nb min de dés avec les appels de fonctions de tous les voisins
 					informations.depart = neighbor; // nouvelle case de départ
 					auto info = Pathfinding(informations);
 					if (info.nb_dices < min) { // nb de dés plus petit
@@ -167,7 +162,48 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfinding(StrategyAdvanced::i
 		}
 		return informations;
 	}
-	// TODO: insérer une instruction return ici
+}
+
+std::vector<unsigned int> StrategyAdvanced::cluster(unsigned int idcell)
+{
+	// calcul de toutes les cases présente dans un cluster à partir de l'Id d'une cell à nous
+	
+	// on trouve la cell dans la map
+	pSCell currentcell = &Map.cells[idcell];
+	unsigned int ownercell = Id;
+	if (Id != currentcell->infos.owner) {
+		outputLog << "fct cluster, attention cette cell n'est pas à vous" << std::endl;
+		ownercell = currentcell->infos.id;
+	}
+	// tant que currentcell a des voisins du meme owner
+	unsigned int i = 0;
+	std::vector<unsigned int> cluster = {idcell};
+	std::vector<pSCell> non_visited_cells = {};
+	if (cluster.size() == 1) {
+		for (unsigned int i = 0; i < currentcell->nbNeighbors; i++) { // parcours des voisins
+			if (currentcell->neighbors[i]->infos.owner == ownercell) { // selections des voisins avec le meme owner
+				cluster.push_back(currentcell->neighbors[i]->infos.id);
+				non_visited_cells.push_back(currentcell->neighbors[i]);
+			}
+		}
+	}
+	else {
+		// tant qu'on a pas  visité toutes les cells du cluster
+		while (!non_visited_cells.empty()) {
+			currentcell = non_visited_cells[0];
+			for (unsigned int i = 0; i < currentcell->nbNeighbors; i++) { // parcours des voisins
+				if (currentcell->neighbors[i]->infos.owner == ownercell) { // selections des voisins avec le meme owner
+					auto p = std::find(cluster.begin(), cluster.end(), currentcell->neighbors[i]->infos.id); 
+					if (p == cluster.end()) { //verif pas deja ajouté
+						cluster.push_back(currentcell->neighbors[i]->infos.id);
+						non_visited_cells.push_back(currentcell->neighbors[i]);
+					}
+				}
+			}
+			non_visited_cells.erase(non_visited_cells.begin());// on enlève la case visité 
+		}
+	}
+	return cluster;
 }
 
 
