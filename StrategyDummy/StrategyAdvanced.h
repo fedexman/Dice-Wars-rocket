@@ -12,7 +12,8 @@ public:
 	struct informations {
 	public:
 		informations(unsigned int iddepart, unsigned int idarrive, SMap& Map);
-		informations(informations& v) = default;
+		informations(unsigned int nb_dices) : nb_dices(nb_dices) {};
+		informations(const informations& v) = default;
 		informations(informations&& vec) = default;
 		~informations() = default;
 

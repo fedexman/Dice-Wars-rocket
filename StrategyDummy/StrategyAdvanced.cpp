@@ -21,57 +21,83 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 	for (unsigned int i = 0; i < Map.nbCells; ++i) {
 		Map.cells[i].infos = state->cells[i];//on acutalise les nouvelles infos du tour
 	}
-
-
-	for (unsigned int i = 0; i < 8 && i < NbPlayer; i++) {
+	for (unsigned int i = 0; i < 8 && i < NbPlayer; i++) {//actualisation des infos du tour 
 		points[i] = state->points[i];	// Points de chaque joueur
 		diceStock[i] = state->diceStock[i];	// Réserve de dés de chaque joueur
 	}
+
 	std::vector<std::pair<pSCell, std::vector<pSCell>>> playableAttackable;
 	//contient en first toutes les cases playable, et en second un vector de toutes les cases attackables depuis cette case
-	if (gameTurn != turnCount) {
-		innerGameTurn = 0;
+	std::vector<unsigned int> cellsAlone{};
+
+	if (gameTurn != turnCount) {//si on est a une nouveau vrai tour, on change de strat
+		innerGameTurn = 0;//gameTurn a linterieur dun tour
 		turnCount = gameTurn;
 		outputLog << std::endl << "TURN:" << turnCount <<std::endl;
+
 		//determination nouvelle strat
 		// stratégie se déclenche lorque le gain de dés est supérieur a tout ceux des adversaires
 		// condition mode end game : avoir plus de case que les autres joueurs
 		unsigned int index = 0;
-		for (unsigned int i = 0; i < 8 && i < NbPlayer; i++) {
-			//outputLog << "Id:" << i << " points:" << points[i] <<std::endl;
-			if (points[i] > points[index]) {
-				index = i;
+
+//		for (unsigned int i = 0; i < Map.nbCells; ++i) {
+//			if (Map.cells[i].infos.owner == Id) {
+//				bool is_group = false;//la cells fait partie dun cluster
+//				for (unsigned int j = 0; j < Map.cells[i].nbNeighbors; ++j) {
+//					if (Map.cells[i].neighbors[j]->infos.owner == Id) {//elle a au moins un voisin a nous
+//						is_group = true;
+//						break;
+//					}
+//				}
+//				if (!is_group) { 
+//					cellsAlone.push_back(i);
+//					break; 
+//				}
+//			}
+//		}
+		auto all_cluster = All_cluster(Id);
+		auto result = std::min_element(all_cluster.begin(), all_cluster.end(), [](std::vector<unsigned int>& a, std::vector<unsigned int>& b) {return a.size() < b.size(); });
+		if ((*result).size()== 1) {//si il y a au moins un cluster de taille, donc une case toutes seul
+			status = Status::startgame;
+		}
+		else {
+			for (unsigned int i = 0; i < 8 && i < NbPlayer; i++) {
+				//outputLog << "Id:" << i << " points:" << points[i] <<std::endl;
+				if (points[i] > points[index]) {
+					index = i;
+				}
+			}
+
+			if (index == Id) { // strategie endgame
+				status = Status::endgame;
+			}
+			else { //stratégie midgame
+				status = Status::middlegame;
 			}
 		}
-		if (index == Id) { // strategie endgame
-			status = Status::endgame;
-		}
-		else { //stratégie midgame
-			status = Status::middlegame;
-		}
 	}
-	else { innerGameTurn++; }
+	else { innerGameTurn++; }//si cest pas un nouveau tour on augmente le compteur de tour a linterieur des tour
 
 	if (!InitTurn(playableAttackable)) { // initialise la variable playableAttackable et return fasle si ya pas de case jouable
 		return false;
 	}
+
+	//if (playableAttackable.size() > 1) {
+	//	StrategyAdvanced::informations info(playableAttackable[0].first->infos.id, playableAttackable[1].first->infos.id, Map);
+	//	StrategyAdvanced::informations info2 = Pathfinding(info);
+	//	outputLog << info2 << std::endl;
+	//	for (unsigned int j = 0; j < Map.cells[info2.path.back()].nbNeighbors; ++j) {
+	//		outputLog << Map.cells[info2.path.back()].neighbors[j]->infos.id << "||";
+	//	}
+	//	outputLog << playableAttackable[0].first->infos.id << "|" << playableAttackable[1].first->infos.id << std::endl;
+	//}
+
 	// determiner le mode
 	// appeler la fonction mode correspondante
-
-	if (playableAttackable.size() > 1) {
-		StrategyAdvanced::informations info(playableAttackable[0].first->infos.id, playableAttackable[1].first->infos.id, Map);
-		StrategyAdvanced::informations info2 = Pathfinding(info);
-		outputLog << info2 << std::endl;
-		for (unsigned int j = 0; j < Map.cells[info2.path.back()].nbNeighbors; ++j) {
-			outputLog << Map.cells[info2.path.back()].neighbors[j]->infos.id << "||";
-		}
-		outputLog << playableAttackable[0].first->infos.id << "|" << playableAttackable[1].first->infos.id << std::endl;
-	}
-
 	switch (status)
 	{
 	case StrategyAdvanced::Status::startgame:
-		//
+		return Startgame(turn, playableAttackable);
 		break;
 	case StrategyAdvanced::Status::middlegame:
 		return Middlegame(turn, playableAttackable);
@@ -125,7 +151,7 @@ bool StrategyAdvanced::InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell
 StrategyAdvanced::informations StrategyAdvanced::Pathfinding(StrategyAdvanced::informations informations)
 {
 	// les id des cases de départ et d'arrivée sont les mêmes : arret de la récursion
-	int min = 1000000;
+	unsigned int min = 1000000;
 	//StrategyAdvanced::informations returninfo=informations;
 
 	if (informations.depart->infos.id == informations.arrive->infos.id) {
@@ -195,6 +221,7 @@ std::vector<std::vector<unsigned int>> StrategyAdvanced::All_cluster(unsigned in
 			}
 		}
 	}
+
 	return all_cluster;
 }
 
@@ -243,12 +270,6 @@ std::vector<unsigned int> StrategyAdvanced::Cluster(unsigned int idcell)
 
 bool StrategyAdvanced::Startgame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable)
 {
-	auto LessNeighbors = 0;
-	for (unsigned int i = 0; i < Map.nbCells;++i) {//variable avec less neighors est en bord de map, on va tenter de reunir toutes nos cases la bas
-		if (Map.cells[i].nbNeighbors < Map.cells[LessNeighbors].nbNeighbors) {
-			LessNeighbors = Map.cells->infos.id;
-		}
-	}
 	// rassembler les dés dans un coin de map
 	//faire cette stratégie tant que tous les dés ne sont pas réuni
 
@@ -256,8 +277,47 @@ bool StrategyAdvanced::Startgame(STurn* turn,std::vector<std::pair<pSCell, std::
 
 	// diriger les dés vers cette case
 
+	auto all_cluster = All_cluster(Id);
+	auto biggest_cluster = std::max_element(all_cluster.begin(), all_cluster.end(), [](std::vector<unsigned int>& a, std::vector<unsigned int>& b) {return a.size() < b.size(); });
 
-	return false;
+	std::vector<unsigned int> cells_joinable{};//contient toutes les cases que lon doit essayer de rejoindre
+	for (auto& itcells : *biggest_cluster) {
+		auto find = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](std::pair<pSCell, std::vector<pSCell>>& i) {return i.first->infos.id == itcells; });
+		if (find != playableAttackable.end()) {//le itcells est jouable/en bordure de cluster
+			cells_joinable.push_back((*find).first->infos.id);
+		}
+	}
+
+	std::vector<informations> best_paths;
+	for (std::vector<std::vector<unsigned int>>::iterator it = all_cluster.begin(); it != all_cluster.end(); ++it) {
+		if (it != biggest_cluster) {//
+			for (auto& itcells : (*it)) {//on parcours les ids des cells de tous les cluster sauf le plus gros
+				auto find = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](std::pair<pSCell, std::vector<pSCell>>& i) {return i.first->infos.id == itcells; });
+				if (find != playableAttackable.end()) {//le itcells est jouable
+					informations best_path{ 999 };//best_path contient un chemin demandant 999des (pire scenario)
+					for (auto& it : cells_joinable) {//on parcours toutes les cases que lon a pour objectif
+						auto path = Pathfinding(informations(itcells, it, Map));
+						if (path.nb_dices < best_path.nb_dices) {
+							best_path = path;
+						}
+					}
+					if (best_path.nb_dices == 0) {
+						outputLog << "bug";
+					}
+					best_paths.push_back(best_path);
+				}
+			}
+		}
+	}
+	if (best_paths.empty()) {
+		outputLog << Id << ": strat startgame on joue pas" << std::endl;
+		return false;
+	}
+	auto final_path = std::min_element(best_paths.begin(), best_paths.end(), [](informations& a, informations& b) {return a.nb_dices < b.nb_dices; });//trouve le chemin le plus simple a faire
+	turn->cellFrom = (*final_path).path[0];
+	turn->cellTo = (*final_path).path[1];
+	outputLog << Id<<": strat startgame on joue, id attaquant " << turn->cellFrom << "id defense : " << turn->cellTo ;
+	return true;
 }
 
 bool StrategyAdvanced::Middlegame(STurn* turn,std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable)
