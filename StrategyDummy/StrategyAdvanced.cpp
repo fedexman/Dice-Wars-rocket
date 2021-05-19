@@ -280,21 +280,22 @@ bool StrategyAdvanced::Startgame(STurn* turn,std::vector<std::pair<pSCell, std::
 
 	std::vector<unsigned int> cells_joinable{};//contient toutes les cases que lon doit essayer de rejoindre
 	for (auto& itcells : *biggest_cluster) {
+		// trouver les cases qui ne sont entouré par des cells d'autre joueurs
 		auto find = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](std::pair<pSCell, std::vector<pSCell>>& i) {return i.first->infos.id == itcells; });
 		if (find != playableAttackable.end()) {//le itcells est jouable/en bordure de cluster
-			cells_joinable.push_back((*find).first->infos.id);
+			cells_joinable.push_back(find->first->infos.id);
 		}
 	}
 
 	std::vector<informations> best_paths;
-	for (std::vector<std::vector<unsigned int>>::iterator it = all_cluster.begin(); it != all_cluster.end(); ++it) {
-		if (it != biggest_cluster) {//
-			for (auto& itcells : (*it)) {//on parcours les ids des cells de tous les cluster sauf le plus gros
+	for (auto itcluster = all_cluster.begin(); itcluster != all_cluster.end(); ++itcluster) {
+		if (itcluster != biggest_cluster) {//
+			for (auto& itcells : (*itcluster)) {//on parcours les ids des cells de tous les cluster sauf le plus gros
 				auto find = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](std::pair<pSCell, std::vector<pSCell>>& i) {return i.first->infos.id == itcells; });
 				if (find != playableAttackable.end()) {//le itcells est jouable
 					informations best_path{ 999 };//best_path contient un chemin demandant 999des (pire scenario)
-					for (auto& it : cells_joinable) {//on parcours toutes les cases que lon a pour objectif
-						auto path = Pathfinding(informations(itcells, it, Map));
+					for (auto& itjoinable : cells_joinable) {//on parcours toutes les cases que lon a pour objectif
+						auto path = Pathfinding(informations(itcells, itjoinable, Map));
 						if (path.nb_dices < best_path.nb_dices) {
 							best_path = path;
 						}
