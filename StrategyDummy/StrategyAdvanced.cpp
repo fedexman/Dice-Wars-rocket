@@ -293,14 +293,16 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 					informations best_path{ 999 };//best_path contient un chemin demandant 999des (pire scenario)
 					for (auto& itJoinable : cells_joinable) {//on parcours toutes les cases que lon a pour objectif
 						auto path = Pathfinding(informations(itcells, itJoinable, Map));
-						if (path.nb_dices < best_path.nb_dices) {
+						if (path.path.back() != itJoinable) {
+							break;
+						}
+						else if (path.nb_dices < best_path.nb_dices) {
 							best_path = path;
 						}
 					}
-					if (best_path.nb_dices == 0) {
-						outputLog << "bug" << std::endl;
+					if (best_path.nb_dices != 0 && best_path.nb_dices != 999) {//on verifie que lon trouve bien un chemin 
+						best_paths.push_back(best_path);
 					}
-					best_paths.push_back(best_path);
 				}
 			}
 		}
@@ -312,11 +314,6 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 		const auto idFrom = path->path[0];
 		const auto idTo = path->path[1];
 
-		if (path->path.size() <= 2) {
-
-			std::cout << "#@@#################################";
-		}
-
 		const int normal_cost = Map.cells[idFrom].infos.nbDices - Map.cells[idTo].infos.nbDices;
 		auto a = path->path.back();
 		auto b = path->path.size() - 2;
@@ -327,8 +324,8 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 				path_to_keep.push_back(*path);
 			}
 			else {
-				//std::reverse(begin(path->path), end(path->path));
-				//path_to_keep.push_back(*path);
+				std::reverse(begin(path->path), end(path->path));
+				path_to_keep.push_back(*path);
 			}
 		}
 	}
@@ -342,6 +339,11 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 	turn->cellFrom = (*final_path).path[0];
 	turn->cellTo = (*final_path).path[1];
 	outputLog << Id << ": strat startgame on joue, id attaquant " << turn->cellFrom << "id defense : " << turn->cellTo << std::endl;
+	std::cout << Id << ": strat startgame on joue, id attaquant " << turn->cellFrom << "id defense : " << turn->cellTo << " des: " << Map.cells[turn->cellFrom].infos.nbDices<< std::endl;
+	std::cout << "Id nous: " << Id << "Id attaque: " << Map.cells[turn->cellFrom].infos.owner << "Id eux: " << Map.cells[turn->cellTo].infos.owner << std::endl;
+	for (unsigned int i = 0; i < Map.cells[turn->cellFrom].nbNeighbors; ++i) {
+		std::cout << "voisin" << Map.cells[turn->cellFrom].neighbors[i]->infos.id;
+	}
 	return true;
 }
 
