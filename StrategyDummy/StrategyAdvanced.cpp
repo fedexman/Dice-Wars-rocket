@@ -25,58 +25,61 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 		points[i] = state->points[i];	// Points de chaque joueur
 		diceStock[i] = state->diceStock[i];	// Réserve de dés de chaque joueur
 	}
-
+	bool needNewStatus = false;//permet de savoir quand il faut calculer si on a besoin d'une nouvelle strat.
+	if (gameTurn != turnCount) {//si on est a une nouveau vrai tour, on change de strat
+		innerGameTurn = 0;//gameTurn a linterieur dun tour
+		turnCount = gameTurn;
+		outputLog << std::endl << "TURN:" << turnCount << std::endl;
+		needNewStatus = true;
+	}
 	std::vector<std::pair<pSCell, std::vector<pSCell>>> playableAttackable;
 	//contient en first toutes les cases playable, et en second un vector de toutes les cases attackables depuis cette case
 	std::vector<unsigned int> cellsAlone{};
 
-	if (gameTurn != turnCount) {//si on est a une nouveau vrai tour, on change de strat
-		innerGameTurn = 0;//gameTurn a linterieur dun tour
-		turnCount = gameTurn;
-		outputLog << std::endl << "TURN:" << turnCount <<std::endl;
-
+	//determination si faut aller en status startgame, a chaque tour interne
+	auto all_cluster = All_cluster(Id);
+	auto result = std::min_element(all_cluster.begin(), all_cluster.end(), [](std::vector<unsigned int>& a, std::vector<unsigned int>& b) {return a.size() < b.size(); });
+	if ((*result).size() == 1) {//si il y a au moins un cluster de taille, donc une case toutes seul
+		status = Status::startgame;
+	}
+	else { needNewStatus = true; }
+	if (needNewStatus) {//si on est a un nouveau vrai tour, on change de strat
 		//determination nouvelle strat
-		// stratégie se déclenche lorque le gain de dés est supérieur a tout ceux des adversaires
+		// stratégie endgame se déclenche lorque le gain de dés est supérieur a tout ceux des adversaires
 		// condition mode end game : avoir plus de case que les autres joueurs
 		unsigned int index = 0;
 
-//		for (unsigned int i = 0; i < Map.nbCells; ++i) {
-//			if (Map.cells[i].infos.owner == Id) {
-//				bool is_group = false;//la cells fait partie dun cluster
-//				for (unsigned int j = 0; j < Map.cells[i].nbNeighbors; ++j) {
-//					if (Map.cells[i].neighbors[j]->infos.owner == Id) {//elle a au moins un voisin a nous
-//						is_group = true;
-//						break;
-//					}
-//				}
-//				if (!is_group) { 
-//					cellsAlone.push_back(i);
-//					break; 
-//				}
-//			}
-//		}
-		auto all_cluster = All_cluster(Id);
-		auto result = std::min_element(all_cluster.begin(), all_cluster.end(), [](std::vector<unsigned int>& a, std::vector<unsigned int>& b) {return a.size() < b.size(); });
-		if ((*result).size()== 1) {//si il y a au moins un cluster de taille, donc une case toutes seul
-			status = Status::startgame;
+		//		for (unsigned int i = 0; i < Map.nbCells; ++i) {
+		//			if (Map.cells[i].infos.owner == Id) {
+		//				bool is_group = false;//la cells fait partie dun cluster
+		//				for (unsigned int j = 0; j < Map.cells[i].nbNeighbors; ++j) {
+		//					if (Map.cells[i].neighbors[j]->infos.owner == Id) {//elle a au moins un voisin a nous
+		//						is_group = true;
+		//						break;
+		//					}
+		//				}
+		//				if (!is_group) { 
+		//					cellsAlone.push_back(i);
+		//					break; 
+		//				}
+		//			}
+		//		}
+		for (unsigned int i = 0; i < 8 && i < NbPlayer; i++) {
+			//outputLog << "Id:" << i << " points:" << points[i] <<std::endl;
+			if (points[i] > points[index]) {
+				index = i;
+			}
 		}
-		else {
-			for (unsigned int i = 0; i < 8 && i < NbPlayer; i++) {
-				//outputLog << "Id:" << i << " points:" << points[i] <<std::endl;
-				if (points[i] > points[index]) {
-					index = i;
-				}
-			}
 
-			if (index == Id) { // strategie endgame
-				status = Status::endgame;
-			}
-			else { //stratégie midgame
-				status = Status::middlegame;
-			}
+		if (index == Id) { // strategie endgame
+			status = Status::endgame;
+		}
+		else { //stratégie midgame
+			status = Status::middlegame;
 		}
 	}
 	else { innerGameTurn++; }//si cest pas un nouveau tour on augmente le compteur de tour a linterieur des tour
+
 
 	if (!InitTurn(playableAttackable)) { // initialise la variable playableAttackable et return fasle si ya pas de case jouable
 		return false;
