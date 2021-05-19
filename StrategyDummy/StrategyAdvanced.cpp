@@ -234,35 +234,33 @@ std::vector<unsigned int> StrategyAdvanced::Cluster(unsigned int idcell)
 	unsigned int ownercell = Id;
 	if (Id != currentcell->infos.owner) {
 		outputLog << "fct cluster, attention cette cell n'est pas à vous" << std::endl;
-		ownercell = currentcell->infos.id;
+		ownercell = currentcell->infos.owner;
 	}
 	// tant que currentcell a des voisins du meme owner
 	unsigned int i = 0;
 	std::vector<unsigned int> cluster = {idcell};
 	std::vector<pSCell> non_visited_cells = {};
-	if (cluster.size() == 1) {
-		for (unsigned int i = 0; i < currentcell->nbNeighbors; i++) { // parcours des voisins
-			if (currentcell->neighbors[i]->infos.owner == ownercell) { // selections des voisins avec le meme owner
-				cluster.push_back(currentcell->neighbors[i]->infos.id);
-				non_visited_cells.push_back(currentcell->neighbors[i]);
-			}
+
+	//premiere itération
+	for (unsigned int i = 0; i < currentcell->nbNeighbors; i++) { // parcours des voisins
+		if (currentcell->neighbors[i]->infos.owner == ownercell) { // selections des voisins avec le meme owner
+			cluster.push_back(currentcell->neighbors[i]->infos.id);
+			non_visited_cells.push_back(currentcell->neighbors[i]);
 		}
 	}
-	else {
-		// tant qu'on a pas  visité toutes les cells du cluster
-		while (!non_visited_cells.empty()) {
-			currentcell = non_visited_cells[0];
-			for (unsigned int i = 0; i < currentcell->nbNeighbors; i++) { // parcours des voisins
-				if (currentcell->neighbors[i]->infos.owner == ownercell) { // selections des voisins avec le meme owner
-					auto p = std::find(cluster.begin(), cluster.end(), currentcell->neighbors[i]->infos.id); 
-					if (p == cluster.end()) { //verif pas deja ajouté
-						cluster.push_back(currentcell->neighbors[i]->infos.id);
-						non_visited_cells.push_back(currentcell->neighbors[i]);
-					}
+	// tant qu'on a pas  visité toutes les cells du cluster
+	while (!non_visited_cells.empty()) {
+		currentcell = non_visited_cells[0];
+		for (unsigned int i = 0; i < currentcell->nbNeighbors; i++) { // parcours des voisins
+			if (currentcell->neighbors[i]->infos.owner == ownercell) { // selections des voisins avec le meme owner
+				auto p = std::find(cluster.begin(), cluster.end(), currentcell->neighbors[i]->infos.id); 
+				if (p == cluster.end()) { //verif pas deja ajouté
+					cluster.push_back(currentcell->neighbors[i]->infos.id);
+					non_visited_cells.push_back(currentcell->neighbors[i]);
 				}
 			}
-			non_visited_cells.erase(non_visited_cells.begin());// on enlève la case visité 
 		}
+		non_visited_cells.erase(non_visited_cells.begin());// on enlève la case visité 
 	}
 	return cluster;
 }
