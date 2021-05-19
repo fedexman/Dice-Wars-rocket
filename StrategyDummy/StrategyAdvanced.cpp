@@ -3,6 +3,7 @@
 #include <vector>
 #include <fstream>
 #include <algorithm>
+#include <map>
 
 StrategyAdvanced::StrategyAdvanced(unsigned int id, unsigned int nbPlayer, const SMap* map) : StrategyDummy(id, nbPlayer, map)
 {
@@ -148,11 +149,12 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfinding(StrategyAdvanced::i
 		if (Id != informations.depart->infos.owner) {//si cest pas notre case
 			informations.nb_dices += informations.depart->infos.nbDices;
 		}
-		informations.path.push_back(informations.arrive->infos.id);
+		informations.path.push_back(informations.depart->infos.id);
+		informations.effective_path = true;
 		return informations;
 	}
 	else if (informations.nb_dices > 10) {
-		informations.nb_dices = 1000;
+		informations.effective_path = false;
 		return informations;
 	}
 	else {
@@ -163,8 +165,10 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfinding(StrategyAdvanced::i
 		informations.path.push_back(informations.depart->infos.id);
 
 		// aller plus loin dans le chemin : trouver les voisins non visités
-		for (unsigned int i = 0; i < informations.depart->nbNeighbors; i++) {
-			auto neighbor = informations.depart->neighbors[i];
+		auto departure = informations.depart;
+		auto bestinfo = informations;
+		for (unsigned int i = 0; i < departure->nbNeighbors; i++) {
+			auto neighbor = departure->neighbors[i];
 			if (neighbor->infos.owner != Id || neighbor->infos.id == informations.arrive->infos.id) {
 				// la case ne nous appartient pas ou la case est la case d'arrivée
 				auto p = std::find(informations.path.begin(), informations.path.end(), neighbor->infos.id);
@@ -173,19 +177,124 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfinding(StrategyAdvanced::i
 					// return nb min de dés avec les appels de fonctions de tous les voisins
 					informations.depart = neighbor; // nouvelle case de départ
 					auto info = Pathfinding(informations);
-					if (info.nb_dices < min) { // nb de dés plus petit
-						//returninfo = info;
-						informations = info;
+					if (info.nb_dices < min && info.effective_path) { // nb de dés plus petit
+						bestinfo = info;
+						bestinfo.depart = neighbor;
 						min = info.nb_dices;
 					}
 				}
 			}
 		}
 		if (min == 1000) {
-			informations.nb_dices = 1000;
+			informations.effective_path = false;
 		}
+		else {
+			informations = bestinfo;
+		}
+		outputLog << "target" << informations.arrive->infos.id << std::endl;
+		outputLog << "info : " << informations << std::endl;
 		return informations;
 	}
+}
+
+StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int iddepart, unsigned int idarrive)
+{
+	std::vector<unsigned int> in_range_cell = {};
+	std::vector<unsigned int> added_cells = { iddepart };
+	std::vector<unsigned int> path = { idarrive };
+	std::map<unsigned int, unsigned int> pred; // couple idcell , predecesseur cell
+	std::map<unsigned int, unsigned int> distance_dice;
+	
+	// initialisation des variables
+	for (unsigned int i = 0; i < Map.nbCells; ++i) {
+		if (i != iddepart) {
+			distance_dice[i] = 1000; // supposée infini
+		}
+	}
+
+	pSCell startcell = &Map.cells[iddepart];
+	for (unsigned int i = 0; i < startcell->nbNeighbors; ++i) {
+		if (startcell->neighbors[i]->infos.owner != Id) {
+			in_range_cell.push_back(startcell->neighbors[i]->infos.id);
+			pred[startcell->neighbors[i]->infos.id] = iddepart;
+			distance_dice[startcell->neighbors[i]->infos.id] = startcell->neighbors[i]->infos.nbDices;
+		}
+	}
+
+	bool find_arrival = false;
+	while (!find_arrival && in_range_cell.empty()) {
+		// choix du plus petit nb de dés : ajout de cette cellule
+		std::pair<unsigned int, unsigned int> min_dice = *std::min_element(distance_dice.begin(), distance_dice.end(), [](std::pair<unsigned int, unsigned int>& i, std::pair<unsigned int, unsigned int>& j) {return (i.second < j.second);});
+		//ajout de cette cell
+		added_cells.push_back(min_dice.first);
+		pSCell cell_added = &Map.cells[min_dice.first];
+			
+		// mise a jour des cell voisine
+		for (unsigned int i = 0; i < cell_added->nbNeighbors; ++i) {
+			if (cell_added->neighbors[i]->infos.owner != Id) { // cell a l'adversaire
+				auto neigh = cell_added->neighbors[i];
+				auto already_added = std::find(added_cells.begin(), added_cells.end(), neigh->infos.id); 
+				if (already_added == in_range_cell.end()) { // cell pas deja ajouté 
+					auto already_in_range = std::find(in_range_cell.begin(), in_range_cell.end(), neigh->infos.id);
+					if (already_in_range == in_range_cell.end()) { // nouvelle cell : nouvelle distance, nouveau pred
+						distance_dice[neigh->infos.id] = min_dice.second + neigh->infos.nbDices;
+						pred[neigh->infos.id] = cell_added->infos.id;
+					}
+					else {//ancienne cell : mise a jour pred et distance
+						if (distance_dice[neigh->infos.id] > min_dice.second + neigh->infos.nbDices) { // la nouvelle distance est plus petite
+							distance_dice[neigh->infos.id] = min_dice.second + neigh->infos.nbDices;
+							pred[neigh->infos.id] = cell_added->infos.id;
+						}
+					}
+				}
+			}
+		}
+		// mise a jour distance cell added
+		distance_dice[min_dice.first] = 1001; // -1 pour valeur max car unsigned int
+		// mise a jour in_range_cell ( delete la cell qu'on vient d'ajouter )
+		auto just_added = std::find(in_range_cell.begin(), in_range_cell.end(), min_dice.first);
+		if (just_added == in_range_cell.end()) {
+			outputLog << " c'est mal codé" << std::endl;
+		}
+		else {
+			in_range_cell.erase(just_added);
+		}
+
+		// mise a jour variable find_arrival
+		auto find_end = std::find(added_cells.begin(), added_cells.end(), idarrive);
+		if (find_end != added_cells.end()) {
+			find_arrival = true;
+		}
+	}
+
+	if (!find_arrival) { // on a pas réussi à atteindre la fin
+		informations retour = informations(iddepart, idarrive, Map);
+		retour.effective_path = false;
+		retour.nb_dices = 1000;
+		retour.path = {};
+	}
+	else {
+		// faire le path : remonter de id fin jusqu'a la cell initial avec pred
+		while (path.back() != iddepart)
+		{
+			// trouver le predecesseur du dernier ajout du path
+			auto predecess = std::find(pred.begin(), pred.end(), path.back());
+			if (predecess == pred.end()) {
+				outputLog << "probleme de predecesseur" << std::endl;
+			}
+			else {
+				path.push_back(predecess->second);
+			}
+		}
+
+		std::reverse(path.begin(), path.end());
+		informations retour = informations(iddepart, idarrive, Map);
+		retour.path = path;
+		retour.effective_path = true;
+		retour.nb_dices = distance_dice[idarrive];
+	}
+	
+	return retour;
 }
 
 std::vector<std::vector<unsigned int>> StrategyAdvanced::All_cluster(unsigned int owner)
@@ -278,29 +387,29 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 
 	std::vector<unsigned int> cells_joinable{};//contient toutes les cases que lon doit essayer de rejoindre
 	for (auto& itcells : *biggest_cluster) {
-		auto find = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](std::pair<pSCell, std::vector<pSCell>>& i) {return i.first->infos.id == itcells; });
+		auto find = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](std::pair<pSCell, std::vector<pSCell>>& attackplay) {return attackplay.first->infos.id == itcells; });
 		if (find != playableAttackable.end()) {//le itcells est jouable/en bordure de cluster
-			cells_joinable.push_back((*find).first->infos.id);
+			cells_joinable.push_back(find->first->infos.id);
 		}
 	}
 
 	std::vector<informations> best_paths;
 	for (std::vector<std::vector<unsigned int>>::iterator itCluster = all_cluster.begin(); itCluster != all_cluster.end(); ++itCluster) {
-		if (itCluster != biggest_cluster) {//
+		if (itCluster != biggest_cluster) {
 			for (auto& itcells : (*itCluster)) {//on parcours les ids des cells de tous les cluster sauf le plus gros
-				auto find = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](std::pair<pSCell, std::vector<pSCell>>& i) {return i.first->infos.id == itcells; });
+				auto find = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](std::pair<pSCell, std::vector<pSCell>>& attackplay) {return attackplay.first->infos.id == itcells; });
 				if (find != playableAttackable.end()) {//le itcells est jouable
-					informations best_path{ 999 };//best_path contient un chemin demandant 999des (pire scenario)
+					informations best_path{ 99 };//best_path contient un chemin demandant 999des (pire scenario)
 					for (auto& itJoinable : cells_joinable) {//on parcours toutes les cases que lon a pour objectif
 						auto path = Pathfinding(informations(itcells, itJoinable, Map));
-						if (path.path.back() != itJoinable) {
+						if (!path.effective_path) {
 							break;
 						}
-						else if (path.nb_dices < best_path.nb_dices) {
+						else if (path.nb_dices < best_path.nb_dices && path.effective_path) {
 							best_path = path;
 						}
 					}
-					if (best_path.nb_dices != 0 && best_path.nb_dices != 999) {//on verifie que lon trouve bien un chemin 
+					if (best_path.nb_dices != 0 && best_path.effective_path) {//on verifie que lon trouve bien un chemin 
 						best_paths.push_back(best_path);
 					}
 				}
@@ -311,13 +420,14 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 	//determination du meilleur mouv a faire de tous les meilleurs mouvs que lon a trouver pour toutes les cases
 	std::vector<informations> path_to_keep{};
 	for (auto path = begin(best_paths); path != end(best_paths); ++path) {
-		const auto idFrom = path->path[0];
-		const auto idTo = path->path[1];
+		const int idFrom = path->path[0];
+		const int idTo = path->path[1];
+
+		const int idtolast = path->path[path->path.size() - 2];
+		const int idfromlast = path->path.back();
 
 		const int normal_cost = Map.cells[idFrom].infos.nbDices - Map.cells[idTo].infos.nbDices;
-		auto a = path->path.back();
-		auto b = path->path.size() - 2;
-		const int reverse_cost = Map.cells[path->path.back()].infos.nbDices - Map.cells[path->path[path->path.size() - 2]].infos.nbDices;
+		const int reverse_cost = Map.cells[idfromlast].infos.nbDices - Map.cells[idtolast].infos.nbDices;
 
 		if (normal_cost > 0 || reverse_cost > 0) {//si le mouv est pas trop risqué on le conserve
 			if (normal_cost < reverse_cost) {//lequel est le mieux entre chemin normal et chemin en sens inverse
@@ -335,16 +445,12 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 		//return false;
 		return Middlegame(turn, playableAttackable);//si on peut pas faire de mouv bien avec startgame on appelle middlegame
 	}
-	auto final_path = std::min_element(path_to_keep.begin(), path_to_keep.end(), [](informations& a, informations& b) {return a.nb_dices < b.nb_dices; });//trouve le chemin le plus simple a faire
-	turn->cellFrom = (*final_path).path[0];
-	turn->cellTo = (*final_path).path[1];
-	outputLog << Id << ": strat startgame on joue, id attaquant " << turn->cellFrom << "id defense : " << turn->cellTo << std::endl;
-	std::cout << Id << ": strat startgame on joue, id attaquant " << turn->cellFrom << "id defense : " << turn->cellTo << " des: " << Map.cells[turn->cellFrom].infos.nbDices<< std::endl;
-	std::cout << "Id nous: " << Id << "Id attaque: " << Map.cells[turn->cellFrom].infos.owner << "Id eux: " << Map.cells[turn->cellTo].infos.owner << std::endl;
-	for (unsigned int i = 0; i < Map.cells[turn->cellFrom].nbNeighbors; ++i) {
-		std::cout << "voisin" << Map.cells[turn->cellFrom].neighbors[i]->infos.id;
+	else {
+		auto final_path = std::min_element(path_to_keep.begin(), path_to_keep.end(), [](informations& a, informations& b) {return a.nb_dices < b.nb_dices; });//trouve le chemin le plus simple a faire
+		turn->cellFrom = final_path->path[0];
+		turn->cellTo = final_path->path[1];
+		return true;
 	}
-	return true;
 }
 
 bool StrategyAdvanced::Middlegame(STurn* turn, std::vector<std::pair<pSCell, std::vector<pSCell>>>& playableAttackable)
@@ -425,6 +531,7 @@ StrategyAdvanced::informations::informations(unsigned int iddepart, unsigned int
 	depart = &Map.cells[iddepart];
 	arrive = &Map.cells[idarrive];
 	nb_dices = 0;
+	effective_path = true;
 }
 
 std::ostream& operator<<(std::ostream& o, StrategyAdvanced::informations info)

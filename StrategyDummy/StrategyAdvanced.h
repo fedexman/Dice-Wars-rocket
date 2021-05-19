@@ -12,7 +12,7 @@ public:
 	struct informations {
 	public:
 		informations(unsigned int iddepart, unsigned int idarrive, SMap& Map);
-		informations(unsigned int nb_dices) : nb_dices(nb_dices) {};
+		informations(unsigned int nb_dices) : nb_dices(nb_dices),effective_path(false) {};
 		informations(const informations& v) = default;
 		informations(informations&& vec) = default;
 		~informations() = default;
@@ -25,6 +25,7 @@ public:
 		pSCell depart;
 		pSCell arrive;
 		std::vector<unsigned int> path;
+		bool effective_path;
 	};
 
 	StrategyAdvanced(unsigned int id, unsigned int nbPlayer, const SMap* map);
@@ -32,6 +33,8 @@ public:
 	bool InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell>>> &playableAttackable);
 
 	StrategyAdvanced::informations Pathfinding(StrategyAdvanced::informations informations);
+	StrategyAdvanced::informations Pathfindingprim(unsigned int iddepart,unsigned int idarrive);
+
 	std::vector<unsigned int> Cluster(unsigned int idcell);
 	std::vector<std::vector<unsigned int>> All_cluster(unsigned int owner);
 
