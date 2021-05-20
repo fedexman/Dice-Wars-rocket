@@ -225,17 +225,17 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int id
 	bool find_arrival = false;
 	while (!find_arrival && !in_range_cell.empty()) {
 		// choix du plus petit nb de dés : ajout de cette cellule
-		std::pair<unsigned int, unsigned int> min_dice = *std::min_element(distance_dice.begin(), distance_dice.end(), [](std::pair<unsigned int, unsigned int>& i, std::pair<unsigned int, unsigned int>& j) {return (i.second < j.second);});
+		std::pair<unsigned int, unsigned int> min_dice = *std::min_element(distance_dice.begin(), distance_dice.end(), [](const std::pair<unsigned int, unsigned int>& i, const std::pair<unsigned int, unsigned int>& j) {return (i.second < j.second);});
 		//ajout de cette cell
 		added_cells.push_back(min_dice.first);
 		pSCell cell_added = &Map.cells[min_dice.first];
 			
 		// mise a jour des cell voisine
 		for (unsigned int i = 0; i < cell_added->nbNeighbors; ++i) {
-			if (cell_added->neighbors[i]->infos.owner != Id) { // cell a l'adversaire
+			if (cell_added->neighbors[i]->infos.owner != Id || cell_added->neighbors[i]->infos.id == idarrive) { // cell a l'adversaire ou arrivée
 				auto neigh = cell_added->neighbors[i];
 				auto already_added = std::find(added_cells.begin(), added_cells.end(), neigh->infos.id); 
-				if (already_added == in_range_cell.end()) { // cell pas deja ajouté 
+				if (already_added == added_cells.end()) { // cell pas deja ajouté 
 					auto already_in_range = std::find(in_range_cell.begin(), in_range_cell.end(), neigh->infos.id);
 					if (already_in_range == in_range_cell.end()) { // nouvelle cell : nouvelle distance, nouveau pred, mettre dans in range cell
 						distance_dice[neigh->infos.id] = min_dice.second + neigh->infos.nbDices;
@@ -281,13 +281,7 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int id
 		while (path.back() != iddepart)
 		{
 			// trouver le predecesseur du dernier ajout du path
-			auto predecess = std::find(pred.begin(), pred.end(), path.back());
-			if (predecess == pred.end()) {
-				outputLog << "probleme de predecesseur" << std::endl;
-			}
-			else {
-				path.push_back(predecess->second);
-			}
+			path.push_back(pred[path.back()]);
 		}
 
 		std::reverse(path.begin(), path.end());
@@ -402,12 +396,12 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 				if (find != playableAttackable.end()) {//le itcells est jouable
 					informations best_path{ 999 };//best_path contient un chemin demandant 999des (pire scenario)
 					for (auto& itJoinable : cells_joinable) {//on parcours toutes les cases que lon a pour objectif
-						auto path = Pathfinding(informations(itcells, itJoinable, Map));
-						auto pathbis = Pathfindingprim(itcells, itJoinable);
+						//auto path = Pathfinding(informations(itcells, itJoinable, Map));
+						auto path = Pathfindingprim(itcells, itJoinable);
 						if (!path.effective_path) {
 							break;
 						}
-						else if (path.nb_dices < best_path.nb_dices && path.effective_path) {
+						else if (path.nb_dices < best_path.nb_dices) {
 							best_path = path;
 						}
 					}
