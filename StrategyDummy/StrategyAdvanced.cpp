@@ -35,12 +35,10 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 	}
 	std::vector<std::pair<pSCell, std::vector<pSCell>>> playableAttackable;
 	//contient en first toutes les cases playable, et en second un vector de toutes les cases attackables depuis cette case
-	std::vector<unsigned int> cellsAlone{};
 
 	//determination si faut aller en status startgame, a chaque tour interne
 	auto all_cluster = All_cluster(Id);
-	auto result = std::min_element(all_cluster.begin(), all_cluster.end(), [](std::vector<unsigned int>& a, std::vector<unsigned int>& b) {return a.size() < b.size(); });
-	if ((*result).size() == 1 && all_cluster.size() != 1) {//si il y a au moins un cluster de taille 1, donc une case toutes seul
+	if (all_cluster.size() != 1) {//si il y a au moins un cluster de taille 1, donc une case toutes seul
 		//il faut aussi quil y ait plus dun seul cluster
 		status = Status::startgame;
 		needNewStatus = false;
@@ -48,23 +46,7 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 	else { needNewStatus = true; }
 	if (needNewStatus) {//si on est a un nouveau vrai tour, on change de strat
 		//determination nouvelle strat
-		// stratégie endgame se déclenche lorque le gain de dés est supérieur a tout ceux des adversaires
-		// condition mode end game : avoir plus de case que les autres joueurs
-		unsigned int index = 0;
-
-		for (unsigned int i = 0; i < 8 && i < NbPlayer; i++) {
-			//outputLog << "Id:" << i << " points:" << points[i] <<std::endl;
-			if (points[i] > points[index]) {
-				index = i;
-			}
-		}
-
-		if (index == Id || diceStock[Id] > 7) { // strategie endgame si on a le joueur avec le plus de points, ou si on a plus de 7 stock en des
-			status = Status::endgame;
-		}
-		else { //stratégie midgame
-			status = Status::middlegame;
-		}
+		status = choose_status();
 	}
 	else { innerGameTurn++; }//si cest pas un nouveau tour on augmente le compteur de tour a linterieur des tour
 
@@ -72,16 +54,6 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 	if (!InitTurn(playableAttackable)) { // initialise la variable playableAttackable et return fasle si ya pas de case jouable
 		return false;
 	}
-
-	//if (playableAttackable.size() > 1) {
-	//	StrategyAdvanced::informations info(playableAttackable[0].first->infos.id, playableAttackable[1].first->infos.id, Map);
-	//	StrategyAdvanced::informations info2 = Pathfinding(info);
-	//	outputLog << info2 << std::endl;
-	//	for (unsigned int j = 0; j < Map.cells[info2.path.back()].nbNeighbors; ++j) {
-	//		outputLog << Map.cells[info2.path.back()].neighbors[j]->infos.id << "||";
-	//	}
-	//	outputLog << playableAttackable[0].first->infos.id << "|" << playableAttackable[1].first->infos.id << std::endl;
-	//}
 
 	// determiner le mode
 	// appeler la fonction mode correspondante
@@ -199,10 +171,10 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int id
 {
 	std::vector<unsigned int> in_range_cell = {}; // les cells qu'on peut ajouter
 	std::vector<unsigned int> added_cells = { iddepart }; // les cells qu'on a ajouté (moins de dés a un moment x)
-	std::vector<unsigned int> path = { idarrive }; 
+	std::vector<unsigned int> path = { idarrive };
 	std::map<unsigned int, unsigned int> pred; // couple idcell , predecesseur cell
 	std::map<unsigned int, unsigned int> distance_dice;
-	
+
 	// initialisation des variables
 	for (unsigned int i = 0; i < Map.nbCells; ++i) {
 		if (i != iddepart) {
@@ -225,16 +197,16 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int id
 	bool find_arrival = false;
 	while (!find_arrival && !in_range_cell.empty()) {
 		// choix du plus petit nb de dés : ajout de cette cellule
-		std::pair<unsigned int, unsigned int> min_dice = *std::min_element(distance_dice.begin(), distance_dice.end(), [](const std::pair<unsigned int, unsigned int>& i, const std::pair<unsigned int, unsigned int>& j) {return (i.second < j.second);});
+		std::pair<unsigned int, unsigned int> min_dice = *std::min_element(distance_dice.begin(), distance_dice.end(), [](const std::pair<unsigned int, unsigned int>& i, const std::pair<unsigned int, unsigned int>& j) {return (i.second < j.second); });
 		//ajout de cette cell
 		added_cells.push_back(min_dice.first);
 		pSCell cell_added = &Map.cells[min_dice.first];
-			
+
 		// mise a jour des cell voisine
 		for (unsigned int i = 0; i < cell_added->nbNeighbors; ++i) {
 			if (cell_added->neighbors[i]->infos.owner != Id || cell_added->neighbors[i]->infos.id == idarrive) { // cell a l'adversaire ou arrivée
 				auto neigh = cell_added->neighbors[i];
-				auto already_added = std::find(added_cells.begin(), added_cells.end(), neigh->infos.id); 
+				auto already_added = std::find(added_cells.begin(), added_cells.end(), neigh->infos.id);
 				if (already_added == added_cells.end()) { // cell pas deja ajouté 
 					auto already_in_range = std::find(in_range_cell.begin(), in_range_cell.end(), neigh->infos.id);
 					if (already_in_range == in_range_cell.end()) { // nouvelle cell : nouvelle distance, nouveau pred, mettre dans in range cell
@@ -273,7 +245,7 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int id
 
 	informations retour = informations(iddepart, idarrive, Map);
 	if (!find_arrival) { // on a pas réussi à atteindre la fin
-		
+
 		retour.effective_path = false;
 		retour.nb_dices = 1000;
 		retour.path = {};
@@ -372,15 +344,28 @@ std::vector<unsigned int> StrategyAdvanced::Cluster(unsigned int idcell)
 
 bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std::vector<pSCell>>>& playableAttackable)
 {
-	// rassembler les dés dans un coin de map
 	//faire cette stratégie tant que tous les dés ne sont pas réuni
-
-	// trouver la case avec le moins de voisin la plus proche
-
+	// trouver le plus gros cluster
 	// diriger les dés vers cette case
 
-	auto all_cluster = All_cluster(Id);
-	auto biggest_cluster = std::max_element(all_cluster.begin(), all_cluster.end(), [](std::vector<unsigned int>& a, std::vector<unsigned int>& b) {return a.size() < b.size(); });
+	auto all_cluster = All_cluster(Id);//renvoie tous les cluster
+	auto biggest_cluster = all_cluster.begin();//on initialize le max au premier 
+	for (auto itCluster = all_cluster.begin(); itCluster != all_cluster.end(); ++itCluster) {// on cherche le plus gros cluster
+		if (itCluster->size() > biggest_cluster->size()) { biggest_cluster = itCluster; }//il est plus gros cest donc le nouveau plus gros
+		else if (itCluster->size() == biggest_cluster->size()) {//egalite
+			unsigned int nbNeighA = 0;//compte les neighs de chaqun
+			unsigned int nbNeighB = 0;
+			for (unsigned int id = 0; id < biggest_cluster->size(); ++id) {
+				//on regarde donc lequel a le moins de voisin pour essayer daller en bord de map
+				//bord de map toujours avantageux
+				nbNeighA += Map.cells[itCluster->operator[](id)].nbNeighbors;
+				nbNeighB += Map.cells[biggest_cluster->operator[](id)].nbNeighbors;
+			}
+			if (nbNeighA < nbNeighB) { biggest_cluster = itCluster; }//si il a le moins de voisin cest le nouveau biggest_cluster
+		}
+	}
+	//ancienne version pour trouver le biggest_cluster
+	//auto biggest_cluster = std::max_element(all_cluster.begin(), all_cluster.end(), [](std::vector<unsigned int>& a, std::vector<unsigned int>& b) {return a.size() < b.size(); });
 
 	std::vector<unsigned int> cells_joinable{};//contient toutes les cases que lon doit essayer de rejoindre
 	for (auto& itcells : *biggest_cluster) {
@@ -424,11 +409,11 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 		const int idtolast = path->path[path->path.size() - 2];
 		const int idfromlast = path->path.back();
 
-		const int normal_cost = Map.cells[idFrom].infos.nbDices - Map.cells[idTo].infos.nbDices;
-		const int reverse_cost = Map.cells[idfromlast].infos.nbDices - Map.cells[idtolast].infos.nbDices;
+		const int normal_advantage = Map.cells[idFrom].infos.nbDices - Map.cells[idTo].infos.nbDices;
+		const int reverse_advantage = Map.cells[idfromlast].infos.nbDices - Map.cells[idtolast].infos.nbDices;
 
-		if (normal_cost > 0 || reverse_cost > 0) {//si le mouv est pas trop risqué on le conserve
-			if (normal_cost < reverse_cost) {//lequel est le mieux entre chemin normal et chemin en sens inverse
+		if (normal_advantage > 0 || reverse_advantage > 0) {//si le mouv est pas trop risqué on le conserve
+			if (normal_advantage > reverse_advantage && normal_advantage > 0) {//lequel est le mieux entre chemin normal et chemin en sens inverse
 				path_to_keep.push_back(*path);
 			}
 			else {
@@ -439,14 +424,47 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 	}
 
 	if (path_to_keep.empty()) {
-		outputLog << Id << ": strat startgame on joue pas" << std::endl;
 		//return false;
-		return Middlegame(turn, playableAttackable);//si on peut pas faire de mouv bien avec startgame on appelle middlegame
+		for (std::vector<std::vector<unsigned int>>::iterator itCluster = all_cluster.begin(); itCluster != all_cluster.end(); ++itCluster) {
+			if (itCluster != biggest_cluster) {
+				for (auto& itcells : (*itCluster)) {//on parcours les ids des cells de tous les cluster sauf le plus gros
+					auto p = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](std::pair<pSCell, std::vector<pSCell>>& attackplay) {return attackplay.first->infos.id == itcells; });
+					if (p != playableAttackable.end()) {
+						playableAttackable.erase(p);
+					}
+				}
+			}
+		}
+		if (!playableAttackable.empty()) {
+			outputLog << Id << ": strat startgame on joue pas, appel middlegame" << std::endl;
+			//appel fonction selection strat
+			status = choose_status();
+			switch (status)
+			{
+			case StrategyAdvanced::Status::startgame://cas impossible normalement
+				return Middlegame(turn, playableAttackable);
+				break;
+			case StrategyAdvanced::Status::middlegame:
+				return Middlegame(turn, playableAttackable);
+				break;
+			case StrategyAdvanced::Status::endgame:
+				return Endgame(turn, playableAttackable);
+				break;
+			default:
+				return false;
+				break;
+			}
+		}
+		else {
+			outputLog << Id << ": strat startgame on joue pas" << std::endl;
+			return false;
+		}
 	}
 	else {
 		auto final_path = std::min_element(path_to_keep.begin(), path_to_keep.end(), [](informations& a, informations& b) {return a.nb_dices < b.nb_dices; });//trouve le chemin le plus simple a faire
 		turn->cellFrom = final_path->path[0];
 		turn->cellTo = final_path->path[1];
+		outputLog << Id << ": strat stratgame on joue, id attaquant " << turn->cellFrom << "id defense : " << turn->cellTo << std::endl;
 		return true;
 	}
 }
@@ -522,6 +540,30 @@ bool StrategyAdvanced::Endgame(STurn* turn, std::vector<std::pair<pSCell, std::v
 StrategyAdvanced::~StrategyAdvanced()
 {
 	outputLog.close();
+}
+
+StrategyAdvanced::Status StrategyAdvanced::choose_status()
+{
+	//determination nouvelle strat
+		// stratégie endgame se déclenche lorque le gain de dés est supérieur a tout ceux des adversaires
+		// condition mode end game : avoir plus de case que les autres joueurs
+	unsigned int index = 0;
+
+	for (unsigned int i = 0; i < 8 && i < NbPlayer; i++) {
+		//outputLog << "Id:" << i << " points:" << points[i] <<std::endl;
+		if (points[i] > points[index]) {
+			index = i;
+		}
+	}
+
+	if (index == Id || diceStock[Id] > 7) { // strategie endgame si on a le joueur avec le plus de points, ou si on a plus de 7 stock en des
+		status = Status::endgame;
+	}
+	else { //stratégie midgame
+		status = Status::middlegame;
+	}
+
+	return status;
 }
 
 StrategyAdvanced::informations::informations(unsigned int iddepart, unsigned int idarrive, SMap& Map)
