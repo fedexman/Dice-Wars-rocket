@@ -191,17 +191,15 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfinding(StrategyAdvanced::i
 		else {
 			informations = bestinfo;
 		}
-		outputLog << "target" << informations.arrive->infos.id << std::endl;
-		outputLog << "info : " << informations << std::endl;
 		return informations;
 	}
 }
 
 StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int iddepart, unsigned int idarrive)
 {
-	std::vector<unsigned int> in_range_cell = {};
-	std::vector<unsigned int> added_cells = { iddepart };
-	std::vector<unsigned int> path = { idarrive };
+	std::vector<unsigned int> in_range_cell = {}; // les cells qu'on peut ajouter
+	std::vector<unsigned int> added_cells = { iddepart }; // les cells qu'on a ajouté (moins de dés a un moment x)
+	std::vector<unsigned int> path = { idarrive }; 
 	std::map<unsigned int, unsigned int> pred; // couple idcell , predecesseur cell
 	std::map<unsigned int, unsigned int> distance_dice;
 	
@@ -209,6 +207,9 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int id
 	for (unsigned int i = 0; i < Map.nbCells; ++i) {
 		if (i != iddepart) {
 			distance_dice[i] = 1000; // supposée infini
+		}
+		else {
+			distance_dice[i] = 1001;
 		}
 	}
 
@@ -222,7 +223,7 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int id
 	}
 
 	bool find_arrival = false;
-	while (!find_arrival && in_range_cell.empty()) {
+	while (!find_arrival && !in_range_cell.empty()) {
 		// choix du plus petit nb de dés : ajout de cette cellule
 		std::pair<unsigned int, unsigned int> min_dice = *std::min_element(distance_dice.begin(), distance_dice.end(), [](std::pair<unsigned int, unsigned int>& i, std::pair<unsigned int, unsigned int>& j) {return (i.second < j.second);});
 		//ajout de cette cell
@@ -236,9 +237,10 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int id
 				auto already_added = std::find(added_cells.begin(), added_cells.end(), neigh->infos.id); 
 				if (already_added == in_range_cell.end()) { // cell pas deja ajouté 
 					auto already_in_range = std::find(in_range_cell.begin(), in_range_cell.end(), neigh->infos.id);
-					if (already_in_range == in_range_cell.end()) { // nouvelle cell : nouvelle distance, nouveau pred
+					if (already_in_range == in_range_cell.end()) { // nouvelle cell : nouvelle distance, nouveau pred, mettre dans in range cell
 						distance_dice[neigh->infos.id] = min_dice.second + neigh->infos.nbDices;
 						pred[neigh->infos.id] = cell_added->infos.id;
+						in_range_cell.push_back(neigh->infos.id);
 					}
 					else {//ancienne cell : mise a jour pred et distance
 						if (distance_dice[neigh->infos.id] > min_dice.second + neigh->infos.nbDices) { // la nouvelle distance est plus petite
@@ -267,8 +269,9 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int id
 		}
 	}
 
+	informations retour = informations(iddepart, idarrive, Map);
 	if (!find_arrival) { // on a pas réussi à atteindre la fin
-		informations retour = informations(iddepart, idarrive, Map);
+		
 		retour.effective_path = false;
 		retour.nb_dices = 1000;
 		retour.path = {};
@@ -288,12 +291,10 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int id
 		}
 
 		std::reverse(path.begin(), path.end());
-		informations retour = informations(iddepart, idarrive, Map);
 		retour.path = path;
 		retour.effective_path = true;
 		retour.nb_dices = distance_dice[idarrive];
 	}
-	
 	return retour;
 }
 
@@ -399,9 +400,10 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 			for (auto& itcells : (*itCluster)) {//on parcours les ids des cells de tous les cluster sauf le plus gros
 				auto find = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](std::pair<pSCell, std::vector<pSCell>>& attackplay) {return attackplay.first->infos.id == itcells; });
 				if (find != playableAttackable.end()) {//le itcells est jouable
-					informations best_path{ 99 };//best_path contient un chemin demandant 999des (pire scenario)
+					informations best_path{ 999 };//best_path contient un chemin demandant 999des (pire scenario)
 					for (auto& itJoinable : cells_joinable) {//on parcours toutes les cases que lon a pour objectif
 						auto path = Pathfinding(informations(itcells, itJoinable, Map));
+						auto pathbis = Pathfindingprim(itcells, itJoinable);
 						if (!path.effective_path) {
 							break;
 						}
