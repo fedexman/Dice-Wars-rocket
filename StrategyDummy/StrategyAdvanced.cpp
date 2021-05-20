@@ -227,6 +227,11 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int id
 		if (min_dice.first != idarrive) {
 			distance_dice[min_dice.first] = 1001; // -1 pour valeur max car unsigned int
 		}
+		else {
+			if (cell_added->infos.owner == Id) {
+				distance_dice[min_dice.first] -= cell_added->infos.nbDices; // on retire les dés de l'arrivée si ils nous appartiennent
+			}
+		}
 		// mise a jour in_range_cell ( delete la cell qu'on vient d'ajouter )
 		auto just_added = std::find(in_range_cell.begin(), in_range_cell.end(), min_dice.first);
 		if (just_added == in_range_cell.end()) {
