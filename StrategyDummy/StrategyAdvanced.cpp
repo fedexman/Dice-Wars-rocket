@@ -252,7 +252,9 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int id
 			}
 		}
 		// mise a jour distance cell added
-		distance_dice[min_dice.first] = 1001; // -1 pour valeur max car unsigned int
+		if (min_dice.first != idarrive) {
+			distance_dice[min_dice.first] = 1001; // -1 pour valeur max car unsigned int
+		}
 		// mise a jour in_range_cell ( delete la cell qu'on vient d'ajouter )
 		auto just_added = std::find(in_range_cell.begin(), in_range_cell.end(), min_dice.first);
 		if (just_added == in_range_cell.end()) {
