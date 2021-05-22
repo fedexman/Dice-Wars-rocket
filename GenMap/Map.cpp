@@ -15,7 +15,6 @@ SRegions* Map::GenerateMap(unsigned int& r, unsigned int& c)
     Maps.insert(sregions);
 
     return(sregions);
-    return nullptr;
 }
 
 void Map::DeleteMap(SRegions* regions)
@@ -118,7 +117,7 @@ Regions Map::MakeAllRegions()
         }
         all_region.push_back(region);
     }
-
+    return all_region;
 }
 
 void Map::add_neighbors(std::vector<std::pair<unsigned int, unsigned int>>& neighbors, std::vector<std::pair<unsigned int, unsigned int>> pair, std::vector<std::pair<unsigned int, unsigned int>> non_used_cells)

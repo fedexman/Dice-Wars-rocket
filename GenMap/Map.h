@@ -16,7 +16,7 @@ public:
 	SRegions* GenerateMap(unsigned int& r, unsigned int& c);
 	void DeleteMap(SRegions* regions);
 
-	// fonction a nous 
+	// fonction a nous
 	std::vector<std::pair<unsigned int, unsigned int>> GenerateAllCell();
 	std::vector<std::pair<unsigned int, unsigned int>> MakeRegion(std::vector<std::pair<unsigned int, unsigned int>> non_used_cells);
 	Regions MakeAllRegions();
