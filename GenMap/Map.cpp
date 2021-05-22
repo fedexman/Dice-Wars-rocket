@@ -2,11 +2,14 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include "src/DefaultMap.h"
 
 SRegions* Map::GenerateMap(unsigned int& r, unsigned int& c)
 {
     // fonction principal 
-    Regions regions = MakeAllRegions();
+    //Regions regions = MakeAllRegions();
+    Regions regions;
+    LoadDefaultMap(regions);
     unsigned int nbR, nbC;
     SRegions* sregions = ConvertMap(regions, nbR, nbC);
     r = nbR;
@@ -20,11 +23,17 @@ SRegions* Map::GenerateMap(unsigned int& r, unsigned int& c)
 void Map::DeleteMap(SRegions* regions)
 {
     // supprimer la map
+    for (unsigned int i = 0; i < regions->nbRegions; ++i)
+	{
+		delete[](regions->region[i].cells);
+	}
+	delete[] regions->region;
+	delete regions;
 }
 
 std::vector<std::pair<unsigned int, unsigned int>> Map::GenerateAllCell()
 {
-    // les cells vont de 0,0 à 31,27
+    // les cells vont de 0,0 à 27,31
     // mettre toutes les cells dans un vecteur ( pointeur ) 
     std::vector<std::pair<unsigned int, unsigned int>> all_cell;
 

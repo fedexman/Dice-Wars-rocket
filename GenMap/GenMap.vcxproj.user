@@ -3,7 +3,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommand>$(OutDir)DiceWars.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-r "$(OutDir)Referee.dll" -m "$(OutDir)$(TargetFileName)" -g "$(OutDir)Gui.dll" -s "$(OutDir)Strategy.dll" -s "$(OutDir)Strategy.dll"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-r "$(OutDir)Referee.dll" -m "$(OutDir)GenMap.dll" -g "$(OutDir)Gui.dll" -s "$(OutDir)Strategy.dll" -s "$(OutDir)Strategy.dll"</LocalDebuggerCommandArguments>
     <LocalDebuggerWorkingDirectory>$(SolutionDir)</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

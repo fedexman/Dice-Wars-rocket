@@ -12,7 +12,7 @@ class Map : public IMap
 public:
 	// fonction reecrite de IMap
 	Map() {}
-	virtual ~Map() = default;
+	virtual ~Map() { for (auto pMap : Maps) DeleteMap(pMap); };
 	SRegions* GenerateMap(unsigned int& r, unsigned int& c);
 	void DeleteMap(SRegions* regions);
 

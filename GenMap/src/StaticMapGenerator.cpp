@@ -2,6 +2,8 @@
 #include "MapLoader.h"
 #include "DefaultMap.h"
 
+#include "../Map.h"
+
 API_EXPORT void InitMap(SInfo* info)
 {
 	info->SetName("Default map");
@@ -10,7 +12,7 @@ API_EXPORT void InitMap(SInfo* info)
 
 API_EXPORT IMap* MapFactory()
 {
-	return(new MapLoader());
+	return(new Map());
 }
 
 API_EXPORT void MapDelete(IMap* obj)
