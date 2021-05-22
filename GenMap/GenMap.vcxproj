@@ -171,7 +171,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Map.h" />
     <ClInclude Include="src\interface_lib.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Map.cpp" />
   </ItemGroup>
   <Import Project="GenMap.vcxproj.files" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

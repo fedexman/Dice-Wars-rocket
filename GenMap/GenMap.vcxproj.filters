@@ -27,6 +27,9 @@
     <ClCompile Include="src\MapLoader.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
+    <ClCompile Include="Map.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DefaultMap.h">
@@ -42,6 +45,9 @@
       <Filter>Fichiers d%27en-tête\Commun</Filter>
     </ClInclude>
     <ClInclude Include="src\interface_lib.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="Map.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
   </ItemGroup>
