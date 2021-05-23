@@ -7,9 +7,7 @@
 SRegions* Map::GenerateMap(unsigned int& r, unsigned int& c)
 {
     // fonction principal 
-    //Regions regions = MakeAllRegions();
-    Regions regions;
-    LoadDefaultMap(regions);
+    Regions regions = MakeAllRegions();
     unsigned int nbR, nbC;
     SRegions* sregions = ConvertMap(regions, nbR, nbC);
     r = nbR;
@@ -99,6 +97,8 @@ std::vector<std::pair<unsigned int, unsigned int>> Map::MakeRegion(std::vector<s
             std::vector<std::pair<unsigned int, unsigned int>> impair = { {row - 1, col}, {row - 1, col + 1}, {row, col - 1}, {row, col + 1}, {row + 1, col}, {row + 1, col + 1} };
             add_neighbors(neighbors, impair, non_used_cells);
         }
+
+        i++;
     }
     return region;
 }
@@ -125,6 +125,8 @@ Regions Map::MakeAllRegions()
             }
         }
         all_region.push_back(region);
+
+        i++;
     }
     return all_region;
 }
@@ -148,7 +150,6 @@ void Map::add_neighbors(std::vector<std::pair<unsigned int, unsigned int>>& neig
 SRegions* Map::ConvertMap(Regions& regions, unsigned int& nbR, unsigned int& nbC)
 {
     // convertir vecteur de vecteur en map ( tout mettre dans la map ) 
-    return nullptr;
     // fonction du prof, devrait marcher
     SRegions* reg = new SRegions;
 
