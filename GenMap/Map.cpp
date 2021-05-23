@@ -27,7 +27,7 @@ SRegions* Map::GenerateMap(unsigned int& r, unsigned int& c)
     }
     */
 
-    Regions regions = MakeAllRegionsv2();
+    Regions regions = MakeAllRegions();
     unsigned int nbR, nbC;
     SRegions* sregions = ConvertMap(regions, nbR, nbC);
     r = nbR;
@@ -196,7 +196,13 @@ Map::reg_neigh Map::MakeRegionv2(vector_cell non_used_cells, std::pair<unsigned 
 
     unsigned int i = 1;
     while (i <= nb_cell_region && !neighbors.empty()) {
-        auto chosen_neigh = neighbors[0];
+        std::pair<unsigned int, unsigned int> chosen_neigh;
+        if (neighbors.size() >= 3) {
+            chosen_neigh = neighbors[i % 3];
+        }
+        else {
+            chosen_neigh = neighbors[0];
+        }
         // ajout dans la region
         region.push_back(chosen_neigh);
 
