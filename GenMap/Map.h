@@ -21,7 +21,7 @@ public:
 	std::vector<std::pair<unsigned int, unsigned int>> MakeRegion(std::vector<std::pair<unsigned int, unsigned int>> non_used_cells);
 	Regions MakeAllRegions();
 
-	void add_neighbors(std::vector<std::pair<unsigned int, unsigned int>>& neighbors, std::vector<std::pair<unsigned int, unsigned int>> pair, std::vector<std::pair<unsigned int, unsigned int>> non_used_cells);
+	void add_neighbors(std::vector<std::pair<unsigned int, unsigned int>>& neighbors, std::vector<std::pair<unsigned int, unsigned int>> pair, std::vector<std::pair<unsigned int, unsigned int>> non_used_cells, std::vector<std::pair<unsigned int, unsigned int>> region);
 	// objectif 
 	// generer toutes les cellules et des regions de 6 cases (facile)
 

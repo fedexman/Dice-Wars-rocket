@@ -51,53 +51,54 @@ std::vector<std::pair<unsigned int, unsigned int>> Map::MakeRegion(std::vector<s
     std::vector<std::pair<unsigned int, unsigned int>> pair = { {-1, -1}, {-1, 0}, {0, -1}, {0, 1}, {1, -1}, {1, 0} };
     std::vector<std::pair<unsigned int, unsigned int>> impair = { {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, 0}, {1, 1} };
     */
-    unsigned int rand_cell = rand() % non_used_cells.size();
+
+    std::srand(std::time(nullptr));
+    unsigned int rand_cell = std::rand() % non_used_cells.size();
     auto chosen_cell = non_used_cells.begin() + rand_cell;
 
     // faire  une region avec cette cell comme départ
-    unsigned int nb_cell_region = (rand() % 6) + 18; // 18 à 23
+    unsigned int nb_cell_region = (std::rand() % 6) + 18; // 18 à 23
 
     std::vector<std::pair<unsigned int, unsigned int>> region;
     std::vector<std::pair<unsigned int, unsigned int>> neighbors;
 
     // faire un premier tour pour rajouter des voisins
+    region.push_back(*chosen_cell);
     unsigned int row = chosen_cell->first;
     unsigned int col = chosen_cell->second;
     if ((chosen_cell->first % 2) == 0) { // c'est une ligne pair 
         std::vector<std::pair<unsigned int, unsigned int>> pair = { {row - 1, col - 1}, {row - 1, col}, {row, col - 1}, {row, col + 1}, {row + 1, col - 1}, {row + 1, col} };
         // trouver si la cellule est dans non_used et si elle n'est pas déjà dans les voisins
         // ajout de la cell dans les voisins
-        add_neighbors(neighbors, pair, non_used_cells);
+        add_neighbors(neighbors, pair, non_used_cells,region);
 
         // choisir aléatirement
     }
     else { // c'est une ligne impair
         std::vector<std::pair<unsigned int, unsigned int>> impair = { {row - 1, col}, {row - 1, col + 1}, {row, col - 1}, {row, col + 1}, {row + 1, col}, {row + 1, col + 1} };
-        add_neighbors(neighbors, impair, non_used_cells);
+        add_neighbors(neighbors, impair, non_used_cells,region);
     }
 
 
     unsigned int i = 1;
     while (i <= nb_cell_region && !neighbors.empty()) {
-
-        // choisir aleatoirement un voisin 
-        unsigned int chosen_neigh = rand() % neighbors.size();
+        auto chosen_neigh = neighbors[0];
         // ajout dans la region
-        region.push_back(neighbors[chosen_neigh]);
+        region.push_back(chosen_neigh);
 
-        unsigned int row = neighbors[chosen_neigh].first;
-        unsigned int col = neighbors[chosen_neigh].second;
-        if ((neighbors[chosen_neigh].first % 2) == 0) { // c'est une ligne pair  
+        unsigned int row = chosen_neigh.first;
+        unsigned int col = chosen_neigh.second;
+        if ((chosen_neigh.first % 2) == 0) { // c'est une ligne pair  
             std::vector<std::pair<unsigned int, unsigned int>> pair = { {row - 1, col - 1}, {row - 1, col}, {row, col - 1}, {row, col + 1}, {row + 1, col - 1}, {row + 1, col} };
             // trouver si la cellule est dans non_used et si elle n'est pas déjà dans les voisins
             // ajout de la cell dans les voisins
-            add_neighbors(neighbors, pair, non_used_cells);
+            add_neighbors(neighbors, pair, non_used_cells,region);
         }
         else { // c'est une ligne impair
             std::vector<std::pair<unsigned int, unsigned int>> impair = { {row - 1, col}, {row - 1, col + 1}, {row, col - 1}, {row, col + 1}, {row + 1, col}, {row + 1, col + 1} };
-            add_neighbors(neighbors, impair, non_used_cells);
+            add_neighbors(neighbors, impair, non_used_cells,region);
         }
-
+        neighbors.erase(neighbors.begin());
         i++;
     }
     return region;
@@ -107,13 +108,13 @@ Regions Map::MakeAllRegions()
 {
     // a partir de toutes les cells
     std::vector<std::pair<unsigned int, unsigned int>> non_used_cells = GenerateAllCell();
-    // faire un nombres random de regions entre 25 et 35
-    unsigned int nb_regions = (rand() % 11) + 25; // 25 to 35
+    // supprimer des cells aleatoire pour ne pas remplir toute la map
+    // faire attention a ne pas rejoindre les bords
 
     // appel de la fonction make region a partir de ca
     Regions all_region;
     unsigned int i = 0;
-    while (i < nb_regions) {
+    while (!non_used_cells.empty()) {
         // nouvelle region
         auto region = MakeRegion(non_used_cells);
         // mettre a jour non_used_cells
@@ -124,14 +125,14 @@ Regions Map::MakeAllRegions()
                 non_used_cells.erase(place);
             }
         }
-        all_region.push_back(region);
-
-        i++;
+        if (region.size()>10) {
+            all_region.push_back(region);
+        }
     }
     return all_region;
 }
 
-void Map::add_neighbors(std::vector<std::pair<unsigned int, unsigned int>>& neighbors, std::vector<std::pair<unsigned int, unsigned int>> pair, std::vector<std::pair<unsigned int, unsigned int>> non_used_cells)
+void Map::add_neighbors(std::vector<std::pair<unsigned int, unsigned int>>& neighbors, std::vector<std::pair<unsigned int, unsigned int>> pair, std::vector<std::pair<unsigned int, unsigned int>> non_used_cells, std::vector<std::pair<unsigned int, unsigned int>> region)
 {
     // trouver si la cellule est dans non_used et si elle n'est pas déjà dans les voisins
     for (auto it : pair) {
@@ -139,7 +140,10 @@ void Map::add_neighbors(std::vector<std::pair<unsigned int, unsigned int>>& neig
         if (find_used != non_used_cells.end()) { // jamais utilisé 
             auto find_neigh = std::find(neighbors.begin(), neighbors.end(), it);
             if (find_neigh == neighbors.end()) { // pas dans les voisins
-                neighbors.push_back(it);
+                auto find_region = std::find(region.begin(), region.end(), it);
+                if (find_region == region.end()) {
+                    neighbors.push_back(it);
+                }
             }
         }
     }
