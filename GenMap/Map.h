@@ -6,6 +6,7 @@
 #include "../Commun/IMapLib.h"
 
 using Regions = std::vector< std::vector<std::pair<unsigned int, unsigned int>> >;
+using vector_cell = std::vector<std::pair<unsigned int, unsigned int>>;
 
 class Map : public IMap
 {
@@ -17,13 +18,20 @@ public:
 	void DeleteMap(SRegions* regions);
 
 	// fonction a nous
-	std::vector<std::pair<unsigned int, unsigned int>> GenerateAllCell();
-	std::vector<std::pair<unsigned int, unsigned int>> MakeRegion(std::vector<std::pair<unsigned int, unsigned int>> non_used_cells);
+	// algo 1
+	vector_cell GenerateAllCell(int row,int col);
+	vector_cell MakeRegion(vector_cell non_used_cells);
 	Regions MakeAllRegions();
+	void add_neighbors(vector_cell& neighbors, vector_cell pair, vector_cell non_used_cells, vector_cell region);
 
-	void add_neighbors(std::vector<std::pair<unsigned int, unsigned int>>& neighbors, std::vector<std::pair<unsigned int, unsigned int>> pair, std::vector<std::pair<unsigned int, unsigned int>> non_used_cells, std::vector<std::pair<unsigned int, unsigned int>> region);
-	// objectif 
-	// generer toutes les cellules et des regions de 6 cases (facile)
+	// algo 2
+	struct reg_neigh {
+		vector_cell region;
+		vector_cell voisins;
+	};
+	Map::reg_neigh MakeRegionv2(vector_cell non_used_cells,std::pair<unsigned int,unsigned int> cellfrom);
+	Regions MakeAllRegionsv2();
+
 
 private:
 	SRegions* ConvertMap(Regions& regions, unsigned int& nbR, unsigned int& nbC);
