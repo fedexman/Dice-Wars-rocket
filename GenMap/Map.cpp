@@ -2,7 +2,6 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include "src/DefaultMap.h"
 #include <random>
 
 SRegions* Map::GenerateMap(unsigned int& r, unsigned int& c)
@@ -128,8 +127,8 @@ Regions Map::MakeAllRegions()
 {
     // a partir de toutes les cells
     vector_cell non_used_cells = GenerateAllCell(30,30);
-    // supprimer des cells aleatoire pour ne pas remplir toute la map
-    // faire attention a ne pas rejoindre les bords
+    
+    DeleteRandomCells(non_used_cells);
 
     // appel de la fonction make region a partir de ca
     Regions all_region;
@@ -151,6 +150,42 @@ Regions Map::MakeAllRegions()
     }
     return all_region;
 }
+
+void Map::DeleteRandomCells(vector_cell non_used_cells)
+{
+    // supprimer des cells aleatoire pour ne pas remplir toute la map
+    unsigned int cpt = 0;
+    vector_cell neighbors;
+    while (cpt < 10) { // pour le moment je repète 10 fois la suppression de cells aléatoire
+        std::srand(std::time(nullptr));
+        unsigned int rand_cell = std::rand() % non_used_cells.size();
+        auto chosen_cell = non_used_cells.begin() + rand_cell;
+        unsigned int row = chosen_cell->first;
+        unsigned int col = chosen_cell->second;
+        if ((row % 2) == 0) { // c'est une ligne paire  
+            neighbors = { {row - 1, col - 1}, {row - 1, col}, {row, col - 1}, {row, col + 1}, {row + 1, col - 1}, {row + 1, col} };
+        }
+        else { // c'est une ligne impaire
+            neighbors = { {row - 1, col}, {row - 1, col + 1}, {row, col - 1}, {row, col + 1}, {row + 1, col}, {row + 1, col + 1} };
+        }
+        for (auto it : neighbors) { // je supprime tout ses voisins directs
+            auto find_cell = std::find(non_used_cells.begin(), non_used_cells.end(), it);
+            if (find_cell != non_used_cells.end()) { // n'est pas déjà supprimé
+                non_used_cells.erase(find_cell);
+            }
+        }
+        /* jsp pas pq ça marche pas...
+        *
+        auto find_chosen_cell = std::find(non_used_cells.begin(), non_used_cells.end(), chosen_cell);
+        if (find_chosen_cell != non_used_cells.end()) {
+            non_used_cells.erase(chosen_cell);
+        }*/
+        cpt++;
+    }
+
+    // faire attention a ne pas rejoindre les bords
+}
+
 
 void Map::add_neighbors(vector_cell& neighbors, vector_cell pair, vector_cell non_used_cells, vector_cell region)
 {

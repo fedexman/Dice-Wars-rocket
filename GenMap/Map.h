@@ -23,6 +23,7 @@ public:
 	vector_cell MakeRegion(vector_cell non_used_cells);
 	Regions MakeAllRegions();
 	void add_neighbors(vector_cell& neighbors, vector_cell pair, vector_cell non_used_cells, vector_cell region);
+	void DeleteRandomCells(vector_cell non_used_cells);
 
 	// algo 2
 	struct reg_neigh {
