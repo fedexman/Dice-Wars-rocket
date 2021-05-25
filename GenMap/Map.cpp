@@ -388,15 +388,20 @@ Map::reg_neigh Map::MakeRegionv2(vector_cell non_used_cells, std::pair<unsigned 
 
 Regions Map::MakeAllRegionsv2()
 {
-    vector_cell non_used_cells = GenerateAllCell(30,30);
-    auto must_complete = DeleteRandomCells(non_used_cells,30);
+    unsigned int bord = 30;
+    vector_cell non_used_cells = GenerateAllCell(bord,bord);
+    auto must_complete = DeleteRandomCells(non_used_cells,bord);
 
 
     std::srand(std::time(nullptr)); 
-    unsigned int row_rand_cell = (std::rand() % 10) + 16; // 16 25
-    unsigned int col_rand_cell = (std::rand() % 10) + 16; // 16 25
-    auto chosen_cell = std::find(non_used_cells.begin(),non_used_cells.end(),std::make_pair(row_rand_cell,col_rand_cell)); // première cell choisi au centre
 
+    unsigned int rand_cell = std::rand() % non_used_cells.size();
+    auto chosen_cell = non_used_cells.begin() + rand_cell;
+    while (chosen_cell->first > 0 + bord / 4 && chosen_cell->first < bord - bord / 4 && chosen_cell->second > 0 + bord / 4 && chosen_cell->second < bord - bord / 4) {
+        rand_cell = std::rand() % non_used_cells.size();
+        chosen_cell = non_used_cells.begin() + rand_cell;
+    }
+    
     // nombre de region random
     unsigned int nb_region = (std::rand() % 6) + 25; // 25 à 30
 
@@ -408,23 +413,22 @@ Regions Map::MakeAllRegionsv2()
     vector_cell all_neigh = {(*chosen_cell)};
 
     unsigned int i = 0;
-    while (all_region.size()<nb_region) {
+    while (i<1000000 && all_region.size()<nb_region) {
         unsigned int index_first_cell = std::rand() % all_neigh.size();
         auto chosen_cell = all_neigh.begin() + index_first_cell;
         // nouvelle region à partir d'une cell des voisins
         auto regandneigh = MakeRegionv2(non_used_cells,(*chosen_cell));
         auto region = regandneigh.region;
 
+        //  eliminer les voisins mis dans la nouvelles région
+        for (auto neigh : regandneigh.region) {
+            auto neigh_in_reg = std::find(all_neigh.begin(), all_neigh.end(), neigh);
+            if (neigh_in_reg != all_neigh.end()) { // ce voisin a été mis dans la region
+                all_neigh.erase(neigh_in_reg);
+            }
+        }
         // mise a jour de tous les voisins
         if (!regandneigh.voisins.empty()) { // la region a des cellules voisines
-
-            //  eliminer les voisins mis dans la nouvelles région
-            for (auto neigh : regandneigh.region) {
-                auto neigh_in_reg = std::find(all_neigh.begin(), all_neigh.end(), neigh);
-                if (neigh_in_reg != all_neigh.end()) { // ce voisin a été mis dans la region
-                    all_neigh.erase(neigh_in_reg);
-                }
-            }
 
             // ajout des nouveaux voisins
             for (auto neigh : regandneigh.voisins) {
@@ -444,6 +448,62 @@ Regions Map::MakeAllRegionsv2()
         }
         if (region.size() > 9) {
             all_region.push_back(region);
+        }
+        ++i;
+    }
+    // au cas ou on ne peut pas faire 30 region avec les cells retirés
+    if (i >= 1000000) {
+        vector_cell non_used_cells = GenerateAllCell(30, 30);
+        unsigned int row_rand_cell = (std::rand() % 10) + 16; // 16 25
+        unsigned int col_rand_cell = (std::rand() % 10) + 16; // 16 25
+        auto chosen_cell = std::find(non_used_cells.begin(), non_used_cells.end(), std::make_pair(row_rand_cell, col_rand_cell)); // première cell choisi au centre
+
+        // nombre de region random
+        unsigned int nb_region = (std::rand() % 6) + 25; // 25 à 30
+
+
+        all_region = {};
+
+        // on choisit la premiere cells de la nouvelle region parmi les voisins de toutes les régions
+
+        vector_cell all_neigh = { (*chosen_cell) };
+
+        while (all_region.size() < nb_region) {
+            unsigned int index_first_cell = std::rand() % all_neigh.size();
+            auto chosen_cell = all_neigh.begin() + index_first_cell;
+            // nouvelle region à partir d'une cell des voisins
+            auto regandneigh = MakeRegionv2(non_used_cells, (*chosen_cell));
+            auto region = regandneigh.region;
+
+            //  eliminer les voisins mis dans la nouvelles région
+            for (auto neigh : regandneigh.region) {
+                auto neigh_in_reg = std::find(all_neigh.begin(), all_neigh.end(), neigh);
+                if (neigh_in_reg != all_neigh.end()) { // ce voisin a été mis dans la region
+                    all_neigh.erase(neigh_in_reg);
+                }
+            }
+            // mise a jour de tous les voisins
+            if (!regandneigh.voisins.empty()) { // la region a des cellules voisines
+
+                // ajout des nouveaux voisins
+                for (auto neigh : regandneigh.voisins) {
+                    auto neigh_in_neigh = std::find(all_neigh.begin(), all_neigh.end(), neigh);
+                    if (neigh_in_neigh == all_neigh.end()) { // les voisins n'était pas déjà dans la liste
+                        all_neigh.push_back(neigh);
+                    }
+                }
+            }
+            // mettre a jour non_used_cells
+            for (auto it : region) {
+                // on recher les cases de la region et on les supprime de non_used_cells
+                auto place = std::find(non_used_cells.begin(), non_used_cells.end(), it);
+                if (place != non_used_cells.end()) { // devrait arriver tout le temps 
+                    non_used_cells.erase(place);
+                }
+            }
+            if (region.size() > 9) {
+                all_region.push_back(region);
+            }
         }
     }
     return all_region;
