@@ -49,10 +49,6 @@ vector_cell Map::MakeRegion(vector_cell non_used_cells,std::pair<unsigned int,un
 {
     // choisir une cell au hasard dans le tableau
     //voisin selon la parité de la ligne
-    /*
-    std::vector<std::pair<unsigned int, unsigned int>> pair = { {-1, -1}, {-1, 0}, {0, -1}, {0, 1}, {1, -1}, {1, 0} };
-    std::vector<std::pair<unsigned int, unsigned int>> impair = { {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, 0}, {1, 1} };
-    */
     std::srand(std::time(nullptr));
 
     // faire  une region avec cette cell comme départ
@@ -392,28 +388,24 @@ Regions Map::MakeAllRegionsv2()
     vector_cell non_used_cells = GenerateAllCell(bord,bord);
     auto must_complete = DeleteRandomCells(non_used_cells,bord);
 
-
     std::srand(std::time(nullptr)); 
 
     unsigned int rand_cell = std::rand() % non_used_cells.size();
     auto chosen_cell = non_used_cells.begin() + rand_cell;
+    // la première cellule choisie doit être en milieu de map
     while (chosen_cell->first > 0 + bord / 4 && chosen_cell->first < bord - bord / 4 && chosen_cell->second > 0 + bord / 4 && chosen_cell->second < bord - bord / 4) {
         rand_cell = std::rand() % non_used_cells.size();
         chosen_cell = non_used_cells.begin() + rand_cell;
-    }
-    
+    }  
     // nombre de region random
-    unsigned int nb_region = (std::rand() % 6) + 25; // 25 à 30
-
-
+    unsigned int nb_region = (std::rand() % 6) + bord-5; // 25 à 30
     Regions all_region;
     
     // on choisit la premiere cells de la nouvelle region parmi les voisins de toutes les régions
 
     vector_cell all_neigh = {(*chosen_cell)};
 
-    unsigned int i = 0;
-    while (i<1000000 && all_region.size()<nb_region) {
+    while (all_region.size()<nb_region && !all_neigh.empty()) {
         unsigned int index_first_cell = std::rand() % all_neigh.size();
         auto chosen_cell = all_neigh.begin() + index_first_cell;
         // nouvelle region à partir d'une cell des voisins
@@ -449,18 +441,17 @@ Regions Map::MakeAllRegionsv2()
         if (region.size() > 9) {
             all_region.push_back(region);
         }
-        ++i;
     }
+
     // au cas ou on ne peut pas faire 30 region avec les cells retirés
-    if (i >= 1000000) {
-        vector_cell non_used_cells = GenerateAllCell(30, 30);
-        unsigned int row_rand_cell = (std::rand() % 10) + 16; // 16 25
-        unsigned int col_rand_cell = (std::rand() % 10) + 16; // 16 25
+    if (all_region.size() < nb_region && all_neigh.empty()) {
+        vector_cell non_used_cells = GenerateAllCell(bord, bord);
+        unsigned int row_rand_cell = (std::rand() % 10) + bord/2; // 16 25
+        unsigned int col_rand_cell = (std::rand() % 10) + bord/2; // 16 25
         auto chosen_cell = std::find(non_used_cells.begin(), non_used_cells.end(), std::make_pair(row_rand_cell, col_rand_cell)); // première cell choisi au centre
 
         // nombre de region random
-        unsigned int nb_region = (std::rand() % 6) + 25; // 25 à 30
-
+        unsigned int nb_region = (std::rand() % 6) + bord-5; // 25 à 30
 
         all_region = {};
 
