@@ -55,14 +55,14 @@ vector_cell Map::GenerateAllCell(int row, int col)
     vector_cell all_cell;
 
     for (unsigned int r = 0; r < row; ++r) {
-        for (unsigned int c = 0; c < col; ++c) {
-            all_cell.push_back(std::make_pair(r, c));
-        }
+for (unsigned int c = 0; c < col; ++c) {
+    all_cell.push_back(std::make_pair(r, c));
+}
     }
     return (all_cell);
 }
 
-vector_cell Map::MakeRegion(vector_cell non_used_cells)
+vector_cell Map::MakeRegion(vector_cell non_used_cells,std::pair<unsigned int,unsigned int> chosen_cell)
 {
     // choisir une cell au hasard dans le tableau
     //voisin selon la parité de la ligne
@@ -70,32 +70,28 @@ vector_cell Map::MakeRegion(vector_cell non_used_cells)
     std::vector<std::pair<unsigned int, unsigned int>> pair = { {-1, -1}, {-1, 0}, {0, -1}, {0, 1}, {1, -1}, {1, 0} };
     std::vector<std::pair<unsigned int, unsigned int>> impair = { {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, 0}, {1, 1} };
     */
-
     std::srand(std::time(nullptr));
-    unsigned int rand_cell = std::rand() % non_used_cells.size();
-    auto chosen_cell = non_used_cells.begin() + rand_cell;
 
     // faire  une region avec cette cell comme départ
     unsigned int nb_cell_region = (std::rand() % 6) + 18; // 18 à 23
 
     vector_cell region;
     vector_cell neighbors;
-
     // faire un premier tour pour rajouter des voisins
-    region.push_back(*chosen_cell);
-    unsigned int row = chosen_cell->first;
-    unsigned int col = chosen_cell->second;
-    if ((chosen_cell->first % 2) == 0) { // c'est une ligne pair 
+    region.push_back(chosen_cell);
+    unsigned int row = chosen_cell.first;
+    unsigned int col = chosen_cell.second;
+    if ((chosen_cell.first % 2) == 0) { // c'est une ligne pair 
         vector_cell pair = { {row - 1, col - 1}, {row - 1, col}, {row, col - 1}, {row, col + 1}, {row + 1, col - 1}, {row + 1, col} };
         // trouver si la cellule est dans non_used et si elle n'est pas déjà dans les voisins
         // ajout de la cell dans les voisins
-        add_neighbors(neighbors, pair, non_used_cells,region);
+        add_neighbors(neighbors, pair, non_used_cells, region);
 
         // choisir aléatirement
     }
     else { // c'est une ligne impair
         vector_cell impair = { {row - 1, col}, {row - 1, col + 1}, {row, col - 1}, {row, col + 1}, {row + 1, col}, {row + 1, col + 1} };
-        add_neighbors(neighbors, impair, non_used_cells,region);
+        add_neighbors(neighbors, impair, non_used_cells, region);
     }
 
 
@@ -111,11 +107,11 @@ vector_cell Map::MakeRegion(vector_cell non_used_cells)
             vector_cell pair = { {row - 1, col - 1}, {row - 1, col}, {row, col - 1}, {row, col + 1}, {row + 1, col - 1}, {row + 1, col} };
             // trouver si la cellule est dans non_used et si elle n'est pas déjà dans les voisins
             // ajout de la cell dans les voisins
-            add_neighbors(neighbors, pair, non_used_cells,region);
+            add_neighbors(neighbors, pair, non_used_cells, region);
         }
         else { // c'est une ligne impair
             vector_cell impair = { {row - 1, col}, {row - 1, col + 1}, {row, col - 1}, {row, col + 1}, {row + 1, col}, {row + 1, col + 1} };
-            add_neighbors(neighbors, impair, non_used_cells,region);
+            add_neighbors(neighbors, impair, non_used_cells, region);
         }
         neighbors.erase(neighbors.begin());
         i++;
@@ -126,16 +122,33 @@ vector_cell Map::MakeRegion(vector_cell non_used_cells)
 Regions Map::MakeAllRegions()
 {
     // a partir de toutes les cells
-    vector_cell non_used_cells = GenerateAllCell(30,30);
-    
-    DeleteRandomCells(non_used_cells);
+    std::srand(std::time(nullptr));
+    unsigned int bord = 30;
+    vector_cell non_used_cells = GenerateAllCell(bord, bord);
 
+    auto must_complete = DeleteRandomCells(non_used_cells,bord);
+    auto chosen_cell = non_used_cells.begin();
     // appel de la fonction make region a partir de ca
     Regions all_region;
     unsigned int i = 0;
     while (!non_used_cells.empty()) {
         // nouvelle region
-        auto region = MakeRegion(non_used_cells);
+
+        
+        if (must_complete.empty()) {
+            unsigned int rand_cell = std::rand() % non_used_cells.size();
+            chosen_cell = non_used_cells.begin() + rand_cell;
+        }
+        else {
+            chosen_cell = must_complete.begin();
+        }
+
+        auto region = MakeRegion(non_used_cells,(*chosen_cell));
+        if (!must_complete.empty()) {
+            must_complete.erase(must_complete.begin());
+        }
+
+
         // mettre a jour non_used_cells
         for (auto it : region) {
             // on recher les cases de la region et on les supprime de non_used_cells
@@ -144,22 +157,53 @@ Regions Map::MakeAllRegions()
                 non_used_cells.erase(place);
             }
         }
-        if (region.size()>10) {
+        if (region.size() > 10) {
             all_region.push_back(region);
         }
     }
     return all_region;
 }
 
-void Map::DeleteRandomCells(vector_cell non_used_cells)
+vector_cell Map::DeleteRandomCells(vector_cell& non_used_cells,unsigned int bord)
 {
     // supprimer des cells aleatoire pour ne pas remplir toute la map
-    unsigned int cpt = 0;
-    vector_cell neighbors;
-    while (cpt < 10) { // pour le moment je repète 10 fois la suppression de cells aléatoire
-        std::srand(std::time(nullptr));
+    // faire attention que les bords ne se rejoingne pas
+    std::srand(std::time(nullptr));
+    // initialisation des bordure
+    vector_cell bordure;
+    for (unsigned int i = 0; i < bord; ++i) {
+        for (unsigned int j = 0; j < bord; ++j) {
+            if (i == 0 || i == bord || j == 0 || j == bord)
+                bordure.push_back(std::make_pair(i, j));
+        }
+    }
+    std::vector<vector_cell> hole_in_map; // enregistre toutes les cells de trou dans la map au cas ou ils rejoigne un bord ou un autre trou
+    vector_cell cell_deleted; //cell enleées du groupement en cours
+    vector_cell neigh_cell; // voisin des cells delete en cours
+    std::pair<unsigned int, unsigned int> cell_bord = {-1,-1}; // représente la première cell qui touche le bord dans la suppression
+    vector_cell must_complete_cell; // cell qui rejoigne deux bord de la map
+
+    unsigned int cpt = 0; // tour de while
+
+    vector_cell neighbors; // voisin de la cell courante
+    while (cpt < 10) { // on delete 10 groupement de 15 a 25 cell
+
+        // choix de la premiere cell a enlever
+
         unsigned int rand_cell = std::rand() % non_used_cells.size();
         auto chosen_cell = non_used_cells.begin() + rand_cell;
+
+        // verifier qu'elle n'est pas sur le bord
+        auto find_bord = std::find(bordure.begin(), bordure.end(), (*chosen_cell));
+        if (find_bord != bordure.end()) { //la cell fait partie de la bordure
+            cell_bord = (*chosen_cell);
+        }
+        // choix rand nb de cell a delete (en tout 150 a 250)
+        unsigned int nb_cell_delete = std::rand() % 11 + 15; // 15 a 25
+        cell_deleted = {(*chosen_cell)}; // on remet les cell deleted a 0
+        neigh_cell = {}; // les voisins sont remis a 0
+
+        // premier tour
         unsigned int row = chosen_cell->first;
         unsigned int col = chosen_cell->second;
         if ((row % 2) == 0) { // c'est une ligne paire  
@@ -168,22 +212,104 @@ void Map::DeleteRandomCells(vector_cell non_used_cells)
         else { // c'est une ligne impaire
             neighbors = { {row - 1, col}, {row - 1, col + 1}, {row, col - 1}, {row, col + 1}, {row + 1, col}, {row + 1, col + 1} };
         }
-        for (auto it : neighbors) { // je supprime tout ses voisins directs
-            auto find_cell = std::find(non_used_cells.begin(), non_used_cells.end(), it);
-            if (find_cell != non_used_cells.end()) { // n'est pas déjà supprimé
-                non_used_cells.erase(find_cell);
+        // mise a jour voisins
+        for (auto it : neighbors) {
+            auto find_used = std::find(non_used_cells.begin(), non_used_cells.end(), it);
+            if (find_used != non_used_cells.end()) { // est toujours pas utilisé
+                auto find_neigh = std::find(neigh_cell.begin(), neigh_cell.end(), it);
+                if (find_neigh != neigh_cell.end()) { // n'est pas déjà dans les voisins
+                    neigh_cell.push_back(it); // ajouté au voisins
+                }
             }
         }
-        /* jsp pas pq ça marche pas...
-        *
-        auto find_chosen_cell = std::find(non_used_cells.begin(), non_used_cells.end(), chosen_cell);
-        if (find_chosen_cell != non_used_cells.end()) {
-            non_used_cells.erase(chosen_cell);
-        }*/
+
+        while (cell_deleted.size() < nb_cell_delete && !neigh_cell.empty()) {
+            
+            // choix aleatoire dans les voisins
+            rand_cell = std::rand() % neigh_cell.size();
+            chosen_cell = neigh_cell.begin() + rand_cell;
+            // ajout dans cell_deleted
+            cell_deleted.push_back((*chosen_cell));
+            // suppression des voisins
+            neigh_cell.erase(chosen_cell);
+
+            unsigned int row = chosen_cell->first;
+            unsigned int col = chosen_cell->second;
+            if ((row % 2) == 0) { // c'est une ligne paire  
+                neighbors = { {row - 1, col - 1}, {row - 1, col}, {row, col - 1}, {row, col + 1}, {row + 1, col - 1}, {row + 1, col} };
+            }
+            else { // c'est une ligne impaire
+                neighbors = { {row - 1, col}, {row - 1, col + 1}, {row, col - 1}, {row, col + 1}, {row + 1, col}, {row + 1, col + 1} };
+            }
+            // mise a jour voisins
+            for (auto it : neighbors) {
+                auto find_used = std::find(non_used_cells.begin(), non_used_cells.end(), it);
+                if (find_used != non_used_cells.end()) { // est toujours pas utilisé
+                    auto find_neigh = std::find(neigh_cell.begin(), neigh_cell.end(), it);
+                    if (find_neigh != neigh_cell.end()) { // n'est pas déjà dans les voisins
+                        neigh_cell.push_back(it); // ajouté au voisins
+                    }
+                }
+            }
+        }
+        // mise a jour non_used cells
+        for (auto it : cell_deleted) {
+            auto find_used = std::find(non_used_cells.begin(), non_used_cells.end(), it);
+            if (find_used != non_used_cells.end()) {
+                non_used_cells.erase(find_used);
+            }
+        }
+
+        bool cell_to_bord = false;
+        // mise a jour hole et bord
+        for (auto it : cell_deleted) {
+            // si une seule cell est un bord alors ajouter les voisins comme nouveau bord
+            auto find_bord = std::find(bordure.begin(), bordure.end(), it);
+            if (find_bord != bordure.end()) {
+                cell_to_bord = true;
+                for (auto itneigh : neigh_cell) {
+                    // parcourir hole in map pour voir si un bout du trou en touche un autre
+                    for (auto hole : hole_in_map) {
+                        auto find_hole = std::find(hole.begin(), hole.end(), itneigh);
+                        if (find_hole != hole.end()) { // mettre les cells du trou dans les bords
+                            for (auto hole_cell : hole) {
+                                bordure.push_back(hole_cell);
+                            }
+                        }
+                    }
+                    auto find_bord2 = std::find(bordure.begin(), bordure.end(), itneigh);
+                    if (find_bord2 != bordure.end()) { // deja présent dans la bordure
+                        // ajouter au cellule que l'on doit completer absolument
+                        // cette cellule est le seule rempart entre deux bords pour se compléter
+                        must_complete_cell.push_back(itneigh);
+                    }
+                    else {
+                        bordure.push_back(itneigh);
+                    }
+                }
+            }
+        }
+        if (!cell_to_bord) {
+            bool two_holes = false;
+            // verifier que deux trou ne se touche pas 
+            for (auto it : cell_deleted) {
+                for (auto hole : hole_in_map) {
+                    auto next_hole = std::find(hole.begin(), hole.end(), it);
+                    if (next_hole != hole.end()) {
+                        two_holes = true;
+                        for (auto neigh : neigh_cell) {
+                            hole.push_back(neigh);
+                        }
+                    }
+                }
+            }
+            if (!two_holes) {
+                hole_in_map.push_back(neigh_cell);
+            }
+        }
         cpt++;
     }
-
-    // faire attention a ne pas rejoindre les bords
+    return must_complete_cell;
 }
 
 

@@ -20,10 +20,10 @@ public:
 	// fonction a nous
 	// algo 1
 	vector_cell GenerateAllCell(int row,int col);
-	vector_cell MakeRegion(vector_cell non_used_cells);
+	vector_cell MakeRegion(vector_cell non_used_cells, std::pair<unsigned int, unsigned int> chosen_cell);
 	Regions MakeAllRegions();
 	void add_neighbors(vector_cell& neighbors, vector_cell pair, vector_cell non_used_cells, vector_cell region);
-	void DeleteRandomCells(vector_cell non_used_cells);
+	vector_cell DeleteRandomCells(vector_cell& non_used_cells,unsigned int bord);
 
 	// algo 2
 	struct reg_neigh {
