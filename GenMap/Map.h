@@ -25,7 +25,7 @@ public:
 		vector_cell region;
 		vector_cell voisins;
 	};
-	Map::reg_neigh MakeRegionv2(vector_cell non_used_cells,std::pair<unsigned int,unsigned int> cellfrom);
+	Map::reg_neigh MakeRegionv2(const vector_cell& non_used_cells,std::pair<unsigned int,unsigned int> cellfrom);
 	Regions MakeAllRegionsv2(unsigned int size);
 
 

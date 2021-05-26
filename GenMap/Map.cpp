@@ -62,7 +62,7 @@ void Map::DeleteRandomCells(vector_cell& non_used_cells,unsigned int bord)
     std::vector<vector_cell> hole_in_map; // enregistre toutes les cells de trou dans la map au cas ou ils rejoigne un bord ou un autre trou
     vector_cell cell_deleted; //cell enlevées du groupement en cours
     vector_cell neigh_cell; // voisin des cells delete en cours
-    std::pair<unsigned int, unsigned int> cell_bord = {-1,-1}; // représente la première cell qui touche le bord dans la suppression
+    
 
     unsigned int cpt = 0; // tour de while
 
@@ -78,7 +78,7 @@ void Map::DeleteRandomCells(vector_cell& non_used_cells,unsigned int bord)
         //reinitialisation des variables
         cell_deleted = {(*chosen_cell)}; 
         neigh_cell = {}; 
-        cell_bord = { -1,-1 };
+        std::pair<unsigned int, unsigned int> cell_bord = { -1,-1 }; // représente la première cell qui touche le bord dans la suppression
 
         // verifier que la cell choisie n'est pas sur le bord
         auto find_bord = std::find(bordure.begin(), bordure.end(), (*chosen_cell));
@@ -114,7 +114,7 @@ void Map::DeleteRandomCells(vector_cell& non_used_cells,unsigned int bord)
             
             // ajout dans cell_deleted
             cell_deleted.push_back((*chosen_cell));
-            auto find_bord = std::find(bordure.begin(), bordure.end(), (*chosen_cell));
+            find_bord = std::find(bordure.begin(), bordure.end(), (*chosen_cell));
             if (find_bord != bordure.end()) { //la cell fait partie de la bordure
                 cell_bord = (*chosen_cell);
             }
@@ -163,7 +163,7 @@ void Map::DeleteRandomCells(vector_cell& non_used_cells,unsigned int bord)
         // mise a jour hole et bord
         for (auto it : cell_deleted) {
             // si une seule cell est un bord alors ajouter les voisins comme nouveau bord
-            auto find_bord = std::find(bordure.begin(), bordure.end(), it);
+            find_bord = std::find(bordure.begin(), bordure.end(), it);
             if (find_bord != bordure.end()) {
                 cell_to_bord = true;
                 for (auto itneigh : neigh_cell) {
@@ -224,7 +224,7 @@ void Map::add_neighbors(vector_cell& neighbors, vector_cell pair, vector_cell no
 
 }
 
-Map::reg_neigh Map::MakeRegionv2(vector_cell non_used_cells, std::pair<unsigned int, unsigned int> cellfrom)
+Map::reg_neigh Map::MakeRegionv2(const vector_cell& non_used_cells, std::pair<unsigned int, unsigned int> cellfrom)
 {
     // faire  une region avec cellfrom comme départ
 
@@ -306,7 +306,7 @@ Regions Map::MakeAllRegionsv2(unsigned int size)
         
         // choix de la cell  de depart de la region
         unsigned int index_first_cell = std::rand() % all_neigh.size();
-        auto chosen_cell = all_neigh.begin() + index_first_cell;
+        chosen_cell = all_neigh.begin() + index_first_cell;
 
         // nouvelle region à partir d'une cell des voisins
         auto regandneigh = MakeRegionv2(non_used_cells,(*chosen_cell));
@@ -345,20 +345,20 @@ Regions Map::MakeAllRegionsv2(unsigned int size)
 
     // au cas ou on ne peut pas faire 30 region avec les cells retirés, on prend tous les cells sans en enlevés
     if (all_region.size() < nb_region && all_neigh.empty()) {
-        vector_cell non_used_cells = GenerateAllCell(size, size);
+        non_used_cells = GenerateAllCell(size, size);
         unsigned int row_rand_cell = (std::rand() % 10) + size/2; // 16 25
         unsigned int col_rand_cell = (std::rand() % 10) + size/2; // 16 25
-        auto chosen_cell = std::find(non_used_cells.begin(), non_used_cells.end(), std::make_pair(row_rand_cell, col_rand_cell)); // première cell choisi au centre
+        chosen_cell = std::find(non_used_cells.begin(), non_used_cells.end(), std::make_pair(row_rand_cell, col_rand_cell)); // première cell choisi au centre
 
         // nombre de region random
-        unsigned int nb_region = (std::rand() % 6) + size-5; // 25 à 30
+        nb_region = (std::rand() % 6) + size-5; // 25 à 30
         all_region = {};
         // on choisit la premiere cells de la nouvelle region parmi les voisins de toutes les régions
-        vector_cell all_neigh = { (*chosen_cell) };
+        all_neigh = { (*chosen_cell) };
 
         while (all_region.size() < nb_region) {
             unsigned int index_first_cell = std::rand() % all_neigh.size();
-            auto chosen_cell = all_neigh.begin() + index_first_cell;
+            chosen_cell = all_neigh.begin() + index_first_cell;
             // nouvelle region à partir d'une cell des voisins
             auto regandneigh = MakeRegionv2(non_used_cells, (*chosen_cell));
             auto region = regandneigh.region;

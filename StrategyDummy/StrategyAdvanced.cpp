@@ -271,7 +271,6 @@ std::vector<unsigned int> StrategyAdvanced::Cluster(unsigned int idcell)
 		ownercell = currentcell->infos.owner;
 	}
 	// tant que currentcell a des voisins du meme owner
-	unsigned int i = 0;
 	std::vector<unsigned int> cluster = { idcell };
 	std::vector<pSCell> non_visited_cells = {};
 
@@ -331,7 +330,7 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 
 	std::vector<unsigned int> cells_joinable{};//contient toutes les cases que lon doit essayer de rejoindre du plus gros cluster
 	for (auto& itcells : *biggest_cluster) {
-		auto find = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](std::pair<pSCell, std::vector<pSCell>>& attackplay) {return attackplay.first->infos.id == itcells; });
+		auto find = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](const std::pair<pSCell, std::vector<pSCell>>& attackplay) {return attackplay.first->infos.id == itcells; });
 		if (find != playableAttackable.end()) {//le itcells est jouable/en bordure de cluster
 			cells_joinable.push_back(find->first->infos.id);
 		}
@@ -342,7 +341,7 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 	for (auto itCluster = all_cluster.begin(); itCluster != all_cluster.end(); ++itCluster) {
 		if (itCluster != biggest_cluster) {
 			for (auto& itcells : (*itCluster)) {//on parcours les ids des cells de tous les cluster sauf le plus gros
-				auto find = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](std::pair<pSCell, std::vector<pSCell>>& attackplay) {return attackplay.first->infos.id == itcells; });
+				auto find = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](const std::pair<pSCell, std::vector<pSCell>>& attackplay) {return attackplay.first->infos.id == itcells; });
 				if (find != playableAttackable.end()) {//le itcells est jouable
 					informations best_path{ 999 };//best_path contient un chemin demandant 999 des (pire scenario), supposé infini
 					for (auto& itJoinable : cells_joinable) {//on parcours toutes les cases que l on a pour objectif
@@ -394,7 +393,7 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 		for (std::vector<std::vector<unsigned int>>::iterator itCluster = all_cluster.begin(); itCluster != all_cluster.end(); ++itCluster) {
 			if (itCluster != biggest_cluster) {
 				for (auto& itcells : (*itCluster)) {//on parcours les ids des cells de tous les cluster sauf le plus gros
-					auto p = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](std::pair<pSCell, std::vector<pSCell>>& attackplay) {return attackplay.first->infos.id == itcells; });
+					auto p = std::find_if(playableAttackable.begin(), playableAttackable.end(), [itcells](const std::pair<pSCell, std::vector<pSCell>>& attackplay) {return attackplay.first->infos.id == itcells; });
 					if (p != playableAttackable.end()) {
 						playableAttackable.erase(p);
 					}
@@ -430,7 +429,7 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 	}
 	else { // un chemin pour rejoindre les cluster existe
 		// selection du chemin le moins couteux
-		auto final_path = std::min_element(path_to_keep.begin(), path_to_keep.end(), [](informations& a, informations& b) {return a.nb_dices < b.nb_dices; });
+		auto final_path = std::min_element(path_to_keep.begin(), path_to_keep.end(), [](const informations& a, const informations& b) {return a.nb_dices < b.nb_dices; });
 		turn->cellFrom = final_path->path[0];
 		turn->cellTo = final_path->path[1];
 		outputLog << Id << ": strat stratgame on joue, id attaquant " << turn->cellFrom << "id defense : " << turn->cellTo << std::endl;
@@ -486,10 +485,9 @@ bool StrategyAdvanced::Endgame(STurn* turn, std::vector<std::pair<pSCell, std::v
 	pSCell bestCellP = playableAttackable.begin()->first; // meilleur cellule depuis laquelle on attaque
 	pSCell bestCellA = playableAttackable.begin()->second.operator[](0); // meilleur cellule a attaquer
 	int bestDiff = playableAttackable[0].first->infos.nbDices - playableAttackable[0].second.operator[](0)->infos.nbDices;// nb de dés de différence entre attaquant et attaqué
-	int diff = 0;
 	for (auto& it : playableAttackable) {//parcours tous les cases attackables pour chaque cases playable
 		for (auto& itAttack : it.second) {
-			diff = it.first->infos.nbDices - itAttack->infos.nbDices;
+			int diff = it.first->infos.nbDices - itAttack->infos.nbDices;
 			if (diff > bestDiff) {//trouve la case avec le plus grand ecart de des avec son adversere
 				bestDiff = diff;
 				bestCellP = it.first;
