@@ -27,12 +27,6 @@
     <ClInclude Include="src\StrategyDummy.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="StrategyBasic.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="StrategyBasicv2.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="StrategyAdvanced.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
@@ -42,12 +36,6 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="src\StrategyDummy.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
-    <ClCompile Include="StrategyBasic.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
-    <ClCompile Include="StrategyBasicv2.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="StrategyAdvanced.cpp">

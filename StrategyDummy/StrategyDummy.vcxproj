@@ -23,15 +23,11 @@
     <ClInclude Include="src\Strategy.h" />
     <ClInclude Include="src\StrategyDummy.h" />
     <ClInclude Include="StrategyAdvanced.h" />
-    <ClInclude Include="StrategyBasicv2.h" />
-    <ClInclude Include="StrategyBasic.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\strategy.cpp" />
     <ClCompile Include="src\StrategyDummy.cpp" />
     <ClCompile Include="StrategyAdvanced.cpp" />
-    <ClCompile Include="StrategyBasicv2.cpp" />
-    <ClCompile Include="StrategyBasic.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

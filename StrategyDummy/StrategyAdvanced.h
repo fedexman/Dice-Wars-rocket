@@ -34,7 +34,6 @@ public:
 	bool InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell>>>& playableAttackable);
 
 	//path
-	StrategyAdvanced::informations Pathfinding(StrategyAdvanced::informations informations); // path recursif
 	StrategyAdvanced::informations Pathfindingprim(unsigned int iddepart, unsigned int idarrive); // path iteratif
 
 	// cluster

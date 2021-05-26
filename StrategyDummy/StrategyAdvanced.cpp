@@ -118,62 +118,6 @@ bool StrategyAdvanced::InitTurn(std::vector<std::pair<pSCell, std::vector<pSCell
 	return true;
 }
 
-StrategyAdvanced::informations StrategyAdvanced::Pathfinding(StrategyAdvanced::informations informations)
-{
-	// les id des cases de départ et d'arrivée sont les mêmes : arret de la récursion
-	unsigned int min = 1000; // suppose infini pour determiner le chemin avec le minimum de dés
-
-	// condition d'arret
-	if (informations.depart->infos.id == informations.arrive->infos.id) {
-		if (Id != informations.depart->infos.owner) {//si cest pas notre cell
-			informations.nb_dices += informations.depart->infos.nbDices; // ajout des dé dans le compte
-		}
-		informations.path.push_back(informations.depart->infos.id);
-		informations.effective_path = true;
-		return informations;
-	}
-	else if (informations.nb_dices > 10) { // condition d'arrêt, le chemin est trop long
-		informations.effective_path = false;
-		return informations;
-	}
-	else {
-		// mise a jour des informations
-		if (informations.depart->infos.owner != Id) {//si cest pas notre case on rajoute le nb de des 
-			informations.nb_dices += informations.depart->infos.nbDices;
-		}
-		informations.path.push_back(informations.depart->infos.id);
-
-		// aller plus loin dans le chemin : trouver les voisins non visités
-		auto departure = informations.depart; // fixer le depart
-		auto bestinfo = informations;
-		for (unsigned int i = 0; i < departure->nbNeighbors; i++) { // parcours des voisins du depart
-			auto neighbor = departure->neighbors[i];
-			if (neighbor->infos.owner != Id || neighbor->infos.id == informations.arrive->infos.id) {
-				// la case ne nous appartient pas ou la case est la case d'arrivée
-				auto p = std::find(informations.path.begin(), informations.path.end(), neighbor->infos.id);
-				if (p == informations.path.end()) {
-					// on a jamais visité cette case
-					// return nb min de dés avec les appels de fonctions de tous les voisins
-					informations.depart = neighbor; // nouvelle case de départ
-					auto info = Pathfinding(informations);
-					if (info.nb_dices < min && info.effective_path) { // nb de dés plus petit
-						bestinfo = info;
-						bestinfo.depart = neighbor;
-						min = info.nb_dices;
-					}
-				}
-			}
-		}
-		if (min == 1000) { // on a pas trouvé de chemin
-			informations.effective_path = false;
-		}
-		else { //on met les bonnes informations dans la valeur de retour
-			informations = bestinfo;
-		}
-		return informations;
-	}
-}
-
 StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int iddepart, unsigned int idarrive)
 {
 	// pathfinding mis en place a partir de l'algorithme de prim
