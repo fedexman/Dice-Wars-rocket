@@ -8,7 +8,7 @@ public:
 	StrategyDummy(unsigned int id, unsigned int nbPlayer, const SMap* map);
 	StrategyDummy(const StrategyDummy& obj) = delete;
 	StrategyDummy(StrategyDummy&& obj) = delete;
-	virtual ~StrategyDummy();//faut-il qui soit virtual ?
+	virtual ~StrategyDummy();
 	StrategyDummy& operator=(const StrategyDummy& obj) = delete;
 	StrategyDummy& operator=(StrategyDummy&& obj) = delete;
 
