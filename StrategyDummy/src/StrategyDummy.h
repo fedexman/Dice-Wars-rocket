@@ -6,11 +6,11 @@ class StrategyDummy
 {
 public:
 	StrategyDummy(unsigned int id, unsigned int nbPlayer, const SMap* map);
-	StrategyDummy(const StrategyDummy &obj) =delete;
-	StrategyDummy(StrategyDummy &&obj) =delete;
+	StrategyDummy(const StrategyDummy& obj) = delete;
+	StrategyDummy(StrategyDummy&& obj) = delete;
 	virtual ~StrategyDummy();//faut-il qui soit virtual ?
-	StrategyDummy& operator=(const StrategyDummy &obj) =delete;
-	StrategyDummy& operator=(StrategyDummy &&obj) =delete;
+	StrategyDummy& operator=(const StrategyDummy& obj) = delete;
+	StrategyDummy& operator=(StrategyDummy&& obj) = delete;
 
 public:
 	virtual bool PlayTurn(unsigned int gameTurn, const SGameState* state, STurn* turn) { return false; };

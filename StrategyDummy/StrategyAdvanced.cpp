@@ -30,7 +30,7 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 
 	// choix de la stratégie
 	bool needNewStatus = false; //permet de savoir quand il faut calculer si on a besoin d'une nouvelle strat.
-	
+
 	if (gameTurn != turnCount) {//si on est a une nouveau tour de jeu, on change de strat
 		innerGameTurn = 0;//gameTurn a linterieur dun tour
 		turnCount = gameTurn;
@@ -43,7 +43,7 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 
 	//determination si faut aller en status startgame, a chaque tour interne
 	auto all_cluster = All_cluster(Id);
-	
+
 	// si il y a plusieurs cluster on active le startgame
 	if (all_cluster.size() != 1) {
 		status = Status::startgame;
@@ -56,7 +56,6 @@ bool StrategyAdvanced::PlayTurn(unsigned int gameTurn, const SGameState* state, 
 		status = choose_status();
 	}
 	else { innerGameTurn++; }//si cest pas un nouveau tour on augmente le compteur de tour a linterieur des tour
-
 
 	if (!InitTurn(playableAttackable)) { // initialise la variable playableAttackable et return fasle si ya pas de case jouable
 		return false;
@@ -163,7 +162,7 @@ StrategyAdvanced::informations StrategyAdvanced::Pathfindingprim(unsigned int id
 			if (cell_added->neighbors[i]->infos.owner != Id || cell_added->neighbors[i]->infos.id == idarrive) { // cell a l'adversaire ou arrivée
 				auto neigh = cell_added->neighbors[i];
 				auto already_added = std::find(added_cells.begin(), added_cells.end(), neigh->infos.id);
-				if (already_added == added_cells.end()) { // cell pas deja ajouté 
+				if (already_added == added_cells.end()) { // cell pas deja ajouté
 					auto already_in_range = std::find(in_range_cell.begin(), in_range_cell.end(), neigh->infos.id);
 					if (already_in_range == in_range_cell.end()) { // nouvelle cell : nouvelle distance, nouveau pred, mettre dans in range cell
 						distance_dice[neigh->infos.id] = min_dice.second + neigh->infos.nbDices;
@@ -293,11 +292,10 @@ std::vector<unsigned int> StrategyAdvanced::Cluster(unsigned int idcell)
 				}
 			}
 		}
-		non_visited_cells.erase(non_visited_cells.begin());// on enlève la case visité 
+		non_visited_cells.erase(non_visited_cells.begin());// on enlève la case visité
 	}
 	return cluster;
 }
-
 
 bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std::vector<pSCell>>>& playableAttackable)
 {
@@ -306,10 +304,10 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 	//diriger les dés vers se cluster
 
 	auto all_cluster = All_cluster(Id);//renvoie tous les cluster
-	auto biggest_cluster = all_cluster.begin();//on initialize le max au premier 
+	auto biggest_cluster = all_cluster.begin();//on initialize le max au premier
 	for (auto itCluster = all_cluster.begin(); itCluster != all_cluster.end(); ++itCluster) {// on cherche le plus gros cluster
 		if (itCluster->size() > biggest_cluster->size()) { // cluster plus gros
-			biggest_cluster = itCluster; 
+			biggest_cluster = itCluster;
 		}
 		else if (itCluster->size() == biggest_cluster->size()) {// cluster de meme taille
 			unsigned int nbNeighA = 0;//compte les neighs de chaqun
@@ -321,7 +319,7 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 				nbNeighB += Map.cells[biggest_cluster->operator[](id)].nbNeighbors;
 			}
 			if (nbNeighA < nbNeighB) { //si il a le moins de voisin cest le nouveau biggest_cluster
-				biggest_cluster = itCluster; 
+				biggest_cluster = itCluster;
 			}
 		}
 	}
@@ -354,7 +352,7 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 							best_path = path;
 						}
 					}
-					if (best_path.nb_dices != 0 && best_path.effective_path) {//on verifie que lon trouve bien un chemin 
+					if (best_path.nb_dices != 0 && best_path.effective_path) {//on verifie que lon trouve bien un chemin
 						best_paths.push_back(best_path);
 					}
 				}
@@ -385,7 +383,7 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 		}
 	}
 
-	if (path_to_keep.empty()) { 
+	if (path_to_keep.empty()) {
 		// on ne peux pas rejoindre les cluster
 		// donc on étend le cluster le plus gros
 
@@ -439,7 +437,7 @@ bool StrategyAdvanced::Startgame(STurn* turn, std::vector<std::pair<pSCell, std:
 
 bool StrategyAdvanced::Middlegame(STurn* turn, std::vector<std::pair<pSCell, std::vector<pSCell>>>& playableAttackable)
 {
-	// prendre les cases facile 
+	// prendre les cases facile
 	pSCell bestCellP = playableAttackable.begin()->first; // meilleur cellule depuis laquelle on attaque
 	pSCell bestCellA = playableAttackable.begin()->second.operator[](0); // meilleur cellule a attaquer
 	int bestDiff = playableAttackable[0].first->infos.nbDices - playableAttackable[0].second.operator[](0)->infos.nbDices;// nb de dés de différence entre attaquant et attaqué
@@ -466,10 +464,9 @@ bool StrategyAdvanced::Middlegame(STurn* turn, std::vector<std::pair<pSCell, std
 
 bool StrategyAdvanced::Endgame(STurn* turn, std::vector<std::pair<pSCell, std::vector<pSCell>>>& playableAttackable)
 {
-
 	// attaquer seulement avec un stock de 8 dés ou plus a la fin du tour
 
-	int future_dice_supply = diceStock[Id] + points[Id]; // nb de dés donné à la fin du tour 
+	int future_dice_supply = diceStock[Id] + points[Id]; // nb de dés donné à la fin du tour
 	int missing_dices = 0; // nb de dés manquant pour être plein de 8 dés
 	for (unsigned int i = 0; i < Map.nbCells; ++i) {
 		if (Map.cells[i].infos.owner == Id) {

@@ -29,7 +29,7 @@ void Strategy::InitGame(unsigned int id, unsigned int nbPlayer, const SMap* map)
 	Current = new StrategyAdvanced(id, nbPlayer, map);
 }
 
-bool Strategy::PlayTurn(unsigned int gameTurn, const SGameState *state, STurn *turn)
+bool Strategy::PlayTurn(unsigned int gameTurn, const SGameState* state, STurn* turn)
 {
 	if (Current) return(Current->PlayTurn(gameTurn, state, turn));
 	return(false);

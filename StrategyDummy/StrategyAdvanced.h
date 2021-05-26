@@ -63,4 +63,3 @@ protected:
 	Status status = Status::startgame; // mode de jeu suivant l'avancement de la partie
 	Status choose_status();
 };
-
