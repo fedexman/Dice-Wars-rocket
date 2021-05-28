@@ -11,13 +11,13 @@ using vector_cell = std::vector<std::pair<unsigned int, unsigned int>>;
 class Map : public IMap
 {
 public:
-	// fonction reecrite de IMap
+	// Redéfinition des méthodes de IMap
 	Map() {}
 	virtual ~Map() { for (auto pMap : Maps) DeleteMap(pMap); };
 	SRegions* GenerateMap(unsigned int& r, unsigned int& c);
 	void DeleteMap(SRegions* regions);
 
-	// fonction a nous
+	// Méthodes propres à Map
 	vector_cell GenerateAllCell(int row, int col);
 	void add_neighbors(vector_cell& neighbors, vector_cell pair, vector_cell non_used_cells, vector_cell region);
 	void DeleteRandomCells(vector_cell& non_used_cells, unsigned int bord);
